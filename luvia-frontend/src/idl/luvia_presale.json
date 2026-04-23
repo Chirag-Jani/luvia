@@ -1,0 +1,1279 @@
+{
+  "address": "H6DXYanZ9uiDsUqwsXu7GKNH1E1WHdqKoJr9JqqzA8cP",
+  "metadata": {
+    "name": "luvia_presale",
+    "version": "0.1.0",
+    "spec": "0.1.0",
+    "description": "LUVIA token presale program (Solana / Anchor)"
+  },
+  "instructions": [
+    {
+      "name": "advance_stage",
+      "docs": [
+        "Admin-only manual stage bump. Useful if admin wants to close a stage early even though",
+        "the allocation is not fully sold (any unsold tokens remain in the vault)."
+      ],
+      "discriminator": [
+        245,
+        116,
+        218,
+        214,
+        50,
+        98,
+        155,
+        205
+      ],
+      "accounts": [
+        {
+          "name": "admin",
+          "signer": true,
+          "relations": [
+            "presale_config"
+          ]
+        },
+        {
+          "name": "presale_config",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  114,
+                  101,
+                  115,
+                  97,
+                  108,
+                  101,
+                  95,
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "buy_tokens",
+      "docs": [
+        "User pays `sol_amount` lamports, receives LUVIA based on live SOL/USD price and current",
+        "stage price. If `sol_amount` would exceed the remaining allocation in the current stage,",
+        "the purchase rolls over into subsequent stages at their respective prices.",
+        "Any SOL left over after the final stage is fully sold is simply not transferred",
+        "(remains in the buyer's wallet)."
+      ],
+      "discriminator": [
+        189,
+        21,
+        230,
+        133,
+        247,
+        2,
+        110,
+        42
+      ],
+      "accounts": [
+        {
+          "name": "buyer",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "presale_config",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  114,
+                  101,
+                  115,
+                  97,
+                  108,
+                  101,
+                  95,
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "treasury",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  116,
+                  114,
+                  101,
+                  97,
+                  115,
+                  117,
+                  114,
+                  121
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "token_mint",
+          "relations": [
+            "presale_config"
+          ]
+        },
+        {
+          "name": "token_vault",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "account",
+                "path": "presale_config"
+              },
+              {
+                "kind": "account",
+                "path": "token_program"
+              },
+              {
+                "kind": "account",
+                "path": "token_mint"
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                140,
+                151,
+                37,
+                143,
+                78,
+                36,
+                137,
+                241,
+                187,
+                61,
+                16,
+                41,
+                20,
+                142,
+                13,
+                131,
+                11,
+                90,
+                19,
+                153,
+                218,
+                255,
+                16,
+                132,
+                4,
+                142,
+                123,
+                216,
+                219,
+                233,
+                248,
+                89
+              ]
+            }
+          },
+          "relations": [
+            "presale_config"
+          ]
+        },
+        {
+          "name": "buyer_token_account",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "account",
+                "path": "buyer"
+              },
+              {
+                "kind": "account",
+                "path": "token_program"
+              },
+              {
+                "kind": "account",
+                "path": "token_mint"
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                140,
+                151,
+                37,
+                143,
+                78,
+                36,
+                137,
+                241,
+                187,
+                61,
+                16,
+                41,
+                20,
+                142,
+                13,
+                131,
+                11,
+                90,
+                19,
+                153,
+                218,
+                255,
+                16,
+                132,
+                4,
+                142,
+                123,
+                216,
+                219,
+                233,
+                248,
+                89
+              ]
+            }
+          }
+        },
+        {
+          "name": "pyth_price_update",
+          "docs": [
+            "in `load_sol_usd_price_micro` before we use the price."
+          ]
+        },
+        {
+          "name": "token_program"
+        },
+        {
+          "name": "associated_token_program",
+          "address": "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL"
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "sol_amount",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "initialize",
+      "docs": [
+        "One-time setup. Creates config + treasury PDA + vault ATA, burns hardcoded stage config."
+      ],
+      "discriminator": [
+        175,
+        175,
+        109,
+        31,
+        13,
+        152,
+        155,
+        237
+      ],
+      "accounts": [
+        {
+          "name": "admin",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "presale_config",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  114,
+                  101,
+                  115,
+                  97,
+                  108,
+                  101,
+                  95,
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "treasury",
+          "docs": [
+            "withdrawals happen via signed system-program CPI using the same seeds."
+          ],
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  116,
+                  114,
+                  101,
+                  97,
+                  115,
+                  117,
+                  114,
+                  121
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "token_mint"
+        },
+        {
+          "name": "token_vault",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "account",
+                "path": "presale_config"
+              },
+              {
+                "kind": "account",
+                "path": "token_program"
+              },
+              {
+                "kind": "account",
+                "path": "token_mint"
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                140,
+                151,
+                37,
+                143,
+                78,
+                36,
+                137,
+                241,
+                187,
+                61,
+                16,
+                41,
+                20,
+                142,
+                13,
+                131,
+                11,
+                90,
+                19,
+                153,
+                218,
+                255,
+                16,
+                132,
+                4,
+                142,
+                123,
+                216,
+                219,
+                233,
+                248,
+                89
+              ]
+            }
+          }
+        },
+        {
+          "name": "pyth_price_update"
+        },
+        {
+          "name": "token_program"
+        },
+        {
+          "name": "associated_token_program",
+          "address": "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL"
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "pause",
+      "docs": [
+        "Emergency stop — blocks all buys."
+      ],
+      "discriminator": [
+        211,
+        22,
+        221,
+        251,
+        74,
+        121,
+        193,
+        47
+      ],
+      "accounts": [
+        {
+          "name": "admin",
+          "signer": true,
+          "relations": [
+            "presale_config"
+          ]
+        },
+        {
+          "name": "presale_config",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  114,
+                  101,
+                  115,
+                  97,
+                  108,
+                  101,
+                  95,
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "unpause",
+      "discriminator": [
+        169,
+        144,
+        4,
+        38,
+        10,
+        141,
+        188,
+        255
+      ],
+      "accounts": [
+        {
+          "name": "admin",
+          "signer": true,
+          "relations": [
+            "presale_config"
+          ]
+        },
+        {
+          "name": "presale_config",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  114,
+                  101,
+                  115,
+                  97,
+                  108,
+                  101,
+                  95,
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "withdraw_sol",
+      "docs": [
+        "Admin-only withdraw of SOL out of the treasury PDA."
+      ],
+      "discriminator": [
+        145,
+        131,
+        74,
+        136,
+        65,
+        137,
+        42,
+        38
+      ],
+      "accounts": [
+        {
+          "name": "admin",
+          "writable": true,
+          "signer": true,
+          "relations": [
+            "presale_config"
+          ]
+        },
+        {
+          "name": "presale_config",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  114,
+                  101,
+                  115,
+                  97,
+                  108,
+                  101,
+                  95,
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "treasury",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  116,
+                  114,
+                  101,
+                  97,
+                  115,
+                  117,
+                  114,
+                  121
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "amount",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "withdraw_unsold_tokens",
+      "docs": [
+        "Admin-only recovery of LUVIA that remains in the vault — either because a stage was",
+        "manually skipped before selling out, or because the final stage ended with leftovers.",
+        "Pass `amount == u64::MAX` to sweep the entire current vault balance.",
+        "",
+        "Safety: the admin is expected to only call this for *genuinely unsold* tokens. If you",
+        "call this while a stage is still actively selling, subsequent `buy_tokens` calls may",
+        "fail with `InsufficientVaultBalance` until admin re-funds the vault. The typical safe",
+        "pattern mid-presale is: `pause → withdraw_unsold_tokens → unpause` (or re-fund)."
+      ],
+      "discriminator": [
+        132,
+        251,
+        59,
+        118,
+        38,
+        162,
+        168,
+        77
+      ],
+      "accounts": [
+        {
+          "name": "admin",
+          "writable": true,
+          "signer": true,
+          "relations": [
+            "presale_config"
+          ]
+        },
+        {
+          "name": "presale_config",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  114,
+                  101,
+                  115,
+                  97,
+                  108,
+                  101,
+                  95,
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "token_mint",
+          "relations": [
+            "presale_config"
+          ]
+        },
+        {
+          "name": "token_vault",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "account",
+                "path": "presale_config"
+              },
+              {
+                "kind": "account",
+                "path": "token_program"
+              },
+              {
+                "kind": "account",
+                "path": "token_mint"
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                140,
+                151,
+                37,
+                143,
+                78,
+                36,
+                137,
+                241,
+                187,
+                61,
+                16,
+                41,
+                20,
+                142,
+                13,
+                131,
+                11,
+                90,
+                19,
+                153,
+                218,
+                255,
+                16,
+                132,
+                4,
+                142,
+                123,
+                216,
+                219,
+                233,
+                248,
+                89
+              ]
+            }
+          },
+          "relations": [
+            "presale_config"
+          ]
+        },
+        {
+          "name": "admin_token_account",
+          "docs": [
+            "Admin's own ATA for the LUVIA mint. Auto-created if it doesn't exist."
+          ],
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "account",
+                "path": "admin"
+              },
+              {
+                "kind": "account",
+                "path": "token_program"
+              },
+              {
+                "kind": "account",
+                "path": "token_mint"
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                140,
+                151,
+                37,
+                143,
+                78,
+                36,
+                137,
+                241,
+                187,
+                61,
+                16,
+                41,
+                20,
+                142,
+                13,
+                131,
+                11,
+                90,
+                19,
+                153,
+                218,
+                255,
+                16,
+                132,
+                4,
+                142,
+                123,
+                216,
+                219,
+                233,
+                248,
+                89
+              ]
+            }
+          }
+        },
+        {
+          "name": "token_program"
+        },
+        {
+          "name": "associated_token_program",
+          "address": "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL"
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "amount",
+          "type": "u64"
+        }
+      ]
+    }
+  ],
+  "accounts": [
+    {
+      "name": "PresaleConfig",
+      "discriminator": [
+        115,
+        71,
+        85,
+        233,
+        246,
+        108,
+        30,
+        3
+      ]
+    }
+  ],
+  "events": [
+    {
+      "name": "PausedChanged",
+      "discriminator": [
+        12,
+        10,
+        153,
+        247,
+        60,
+        115,
+        137,
+        69
+      ]
+    },
+    {
+      "name": "PresaleInitialized",
+      "discriminator": [
+        103,
+        99,
+        225,
+        170,
+        238,
+        250,
+        90,
+        75
+      ]
+    },
+    {
+      "name": "SolWithdrawn",
+      "discriminator": [
+        145,
+        249,
+        69,
+        48,
+        206,
+        86,
+        91,
+        66
+      ]
+    },
+    {
+      "name": "StageAdvanced",
+      "discriminator": [
+        238,
+        247,
+        141,
+        164,
+        52,
+        239,
+        99,
+        134
+      ]
+    },
+    {
+      "name": "TokensPurchased",
+      "discriminator": [
+        214,
+        119,
+        105,
+        186,
+        114,
+        205,
+        228,
+        181
+      ]
+    },
+    {
+      "name": "UnsoldTokensWithdrawn",
+      "discriminator": [
+        241,
+        12,
+        117,
+        85,
+        109,
+        175,
+        143,
+        151
+      ]
+    }
+  ],
+  "errors": [
+    {
+      "code": 6000,
+      "name": "PresalePaused",
+      "msg": "Presale is currently paused."
+    },
+    {
+      "code": 6001,
+      "name": "StageSoldOut",
+      "msg": "Current stage is sold out."
+    },
+    {
+      "code": 6002,
+      "name": "InsufficientSol",
+      "msg": "Insufficient SOL sent for purchase."
+    },
+    {
+      "code": 6003,
+      "name": "PresaleEnded",
+      "msg": "Presale has ended — all stages are complete."
+    },
+    {
+      "code": 6004,
+      "name": "InvalidAmount",
+      "msg": "Invalid amount: must be greater than zero."
+    },
+    {
+      "code": 6005,
+      "name": "Unauthorized",
+      "msg": "Unauthorized: admin signature required."
+    },
+    {
+      "code": 6006,
+      "name": "MathOverflow",
+      "msg": "Arithmetic overflow in calculation."
+    },
+    {
+      "code": 6007,
+      "name": "InvalidPriceFeed",
+      "msg": "Pyth price feed account is not the one registered in config."
+    },
+    {
+      "code": 6008,
+      "name": "NegativePrice",
+      "msg": "Pyth price feed returned a non-positive price."
+    },
+    {
+      "code": 6009,
+      "name": "InsufficientVaultBalance",
+      "msg": "Vault does not hold enough tokens to fulfil this purchase."
+    },
+    {
+      "code": 6010,
+      "name": "AlreadyFinalStage",
+      "msg": "Already at the final stage; cannot advance further."
+    },
+    {
+      "code": 6011,
+      "name": "InsufficientTreasuryBalance",
+      "msg": "Treasury does not have enough withdrawable SOL."
+    },
+    {
+      "code": 6012,
+      "name": "InvalidMint",
+      "msg": "Token mint account does not match the one registered in config."
+    },
+    {
+      "code": 6013,
+      "name": "InvalidVault",
+      "msg": "Token vault account does not match the one registered in config."
+    },
+    {
+      "code": 6014,
+      "name": "InvalidMintDecimals",
+      "msg": "Token mint decimals do not match the expected value."
+    }
+  ],
+  "types": [
+    {
+      "name": "PausedChanged",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "paused",
+            "type": "bool"
+          }
+        ]
+      }
+    },
+    {
+      "name": "PresaleConfig",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "admin",
+            "docs": [
+              "Admin wallet that can advance stages, pause, and withdraw SOL."
+            ],
+            "type": "pubkey"
+          },
+          {
+            "name": "treasury",
+            "docs": [
+              "PDA that holds purchased SOL (withdrawable only via `withdraw_sol`)."
+            ],
+            "type": "pubkey"
+          },
+          {
+            "name": "token_mint",
+            "docs": [
+              "LUVIA Token-2022 mint address."
+            ],
+            "type": "pubkey"
+          },
+          {
+            "name": "token_vault",
+            "docs": [
+              "ATA owned by this config PDA that holds presale tokens."
+            ],
+            "type": "pubkey"
+          },
+          {
+            "name": "pyth_price_update",
+            "docs": [
+              "Pyth pull-oracle price update account for SOL/USD."
+            ],
+            "type": "pubkey"
+          },
+          {
+            "name": "current_stage",
+            "docs": [
+              "Index into `stages` (0..NUM_STAGES). When == NUM_STAGES the presale is over."
+            ],
+            "type": "u8"
+          },
+          {
+            "name": "paused",
+            "docs": [
+              "Emergency pause flag — when true, `buy_tokens` is blocked."
+            ],
+            "type": "bool"
+          },
+          {
+            "name": "bump",
+            "docs": [
+              "Bump for the config PDA."
+            ],
+            "type": "u8"
+          },
+          {
+            "name": "treasury_bump",
+            "docs": [
+              "Bump for the treasury PDA."
+            ],
+            "type": "u8"
+          },
+          {
+            "name": "_padding",
+            "docs": [
+              "Reserved for future use / alignment."
+            ],
+            "type": {
+              "array": [
+                "u8",
+                4
+              ]
+            }
+          },
+          {
+            "name": "total_tokens_sold",
+            "docs": [
+              "Total tokens sold across all stages (base units)."
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "total_sol_raised",
+            "docs": [
+              "Total SOL taken into the treasury (lamports)."
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "stages",
+            "docs": [
+              "Per-stage configuration + progress."
+            ],
+            "type": {
+              "array": [
+                {
+                  "defined": {
+                    "name": "StageInfo"
+                  }
+                },
+                4
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "PresaleInitialized",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "admin",
+            "type": "pubkey"
+          },
+          {
+            "name": "treasury",
+            "type": "pubkey"
+          },
+          {
+            "name": "token_mint",
+            "type": "pubkey"
+          },
+          {
+            "name": "token_vault",
+            "type": "pubkey"
+          },
+          {
+            "name": "pyth_price_update",
+            "type": "pubkey"
+          }
+        ]
+      }
+    },
+    {
+      "name": "SolWithdrawn",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "admin",
+            "type": "pubkey"
+          },
+          {
+            "name": "amount",
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "StageAdvanced",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "previous_stage",
+            "type": "u8"
+          },
+          {
+            "name": "new_stage",
+            "type": "u8"
+          },
+          {
+            "name": "manual",
+            "type": "bool"
+          }
+        ]
+      }
+    },
+    {
+      "name": "StageInfo",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "price_micro_usd",
+            "docs": [
+              "Token price in micro-USD (6 decimals): $0.004 => 4_000."
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "allocation",
+            "docs": [
+              "Hard cap for this stage in base units (9 decimals)."
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "sold",
+            "docs": [
+              "Already-sold tokens in this stage (base units)."
+            ],
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "TokensPurchased",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "buyer",
+            "type": "pubkey"
+          },
+          {
+            "name": "sol_spent",
+            "type": "u64"
+          },
+          {
+            "name": "tokens_received",
+            "type": "u64"
+          },
+          {
+            "name": "stage_at_purchase",
+            "type": "u8"
+          },
+          {
+            "name": "stage_after",
+            "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "UnsoldTokensWithdrawn",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "admin",
+            "type": "pubkey"
+          },
+          {
+            "name": "destination",
+            "type": "pubkey"
+          },
+          {
+            "name": "amount",
+            "type": "u64"
+          },
+          {
+            "name": "vault_remaining",
+            "type": "u64"
+          }
+        ]
+      }
+    }
+  ],
+  "constants": [
+    {
+      "name": "PRESALE_SEED",
+      "type": "bytes",
+      "value": "[112, 114, 101, 115, 97, 108, 101, 95, 99, 111, 110, 102, 105, 103]"
+    },
+    {
+      "name": "TREASURY_SEED",
+      "type": "bytes",
+      "value": "[116, 114, 101, 97, 115, 117, 114, 121]"
+    }
+  ]
+}

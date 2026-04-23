@@ -33,13 +33,23 @@ export const Countdown = ({ endDate, compact }: CountdownProps) => {
       {items.map((it) => (
         <div
           key={it.label}
-          className="glass-card text-center py-3 sm:py-4 px-2 relative overflow-hidden"
+          className={`glass-card text-center relative overflow-hidden ${
+            compact ? "py-2 sm:py-2.5 px-1.5" : "py-3 sm:py-4 px-2"
+          }`}
         >
           <div className="absolute inset-0 bg-gradient-violet-cyan opacity-[0.04]" />
-          <div className="relative font-display text-2xl sm:text-3xl md:text-4xl font-bold tabular-nums text-gradient">
+          <div
+            className={`relative font-display font-bold tabular-nums text-gradient ${
+              compact ? "text-lg sm:text-xl md:text-[1.45rem]" : "text-2xl sm:text-3xl md:text-4xl"
+            }`}
+          >
             {String(it.value).padStart(2, "0")}
           </div>
-          <div className="relative text-[10px] sm:text-xs uppercase tracking-widest text-muted-foreground mt-1">
+          <div
+            className={`relative uppercase tracking-widest text-muted-foreground ${
+              compact ? "text-[8px] sm:text-[9px] mt-0.5" : "text-[10px] sm:text-xs mt-1"
+            }`}
+          >
             {it.label}
           </div>
         </div>
