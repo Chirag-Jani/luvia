@@ -31,17 +31,43 @@ export interface PresaleState {
 const MICRO_USD = 1_000_000;
 const BASE_UNIT_DIVISOR = 1_000_000_000; // 10^9
 
-export async function fetchPresaleState(): Promise<PresaleState> {
-  const raw = await readonlyProgram.account.presaleConfig.fetch(
-    PRESALE_CONFIG_PDA
-  );
+function pick<T = unknown>(obj: Record<string, unknown>, ...keys: string[]): T {
+  for (const key of keys) {
+    if (key in obj) return obj[key] as T;
+  }
+  throw new Error(`Missing expected field: ${keys.join(" or ")}`);
+}
 
-  const stages: StageState[] = raw.stages.map((s, i) => {
-    const allocation = BigInt(s.allocation.toString());
-    const sold = BigInt(s.sold.toString());
+function asPublicKey(value: unknown, fieldName: string): PublicKey {
+  if (value instanceof PublicKey) return value;
+  if (typeof value === "string") return new PublicKey(value);
+  if (
+    value &&
+    typeof value === "object" &&
+    "toBase58" in value &&
+    typeof (value as { toBase58?: unknown }).toBase58 === "function"
+  ) {
+    return new PublicKey((value as { toBase58: () => string }).toBase58());
+  }
+  throw new Error(`Invalid public key for field: ${fieldName}`);
+}
+
+export async function fetchPresaleState(): Promise<PresaleState> {
+  const raw = (await readonlyProgram.account.presaleConfig.fetch(
+    PRESALE_CONFIG_PDA
+  )) as unknown as Record<string, unknown>;
+
+  const rawStages = pick<unknown[]>(raw, "stages");
+  const stages: StageState[] = rawStages.map((entry, i) => {
+    const s = entry as Record<string, unknown>;
+    const allocation = BigInt(pick(s, "allocation").toString());
+    const sold = BigInt(pick(s, "sold").toString());
+    const priceMicroUsd = Number(
+      pick(s, "priceMicroUsd", "price_micro_usd").toString()
+    );
     return {
       index: i,
-      priceUsd: s.priceMicroUsd.toNumber() / MICRO_USD,
+      priceUsd: priceMicroUsd / MICRO_USD,
       allocation,
       sold,
       remaining: allocation - sold,
@@ -54,19 +80,29 @@ export async function fetchPresaleState(): Promise<PresaleState> {
     usdRaised += soldUi * s.priceUsd;
   }
 
-  const activeStage =
-    raw.currentStage < stages.length ? stages[raw.currentStage] : null;
+  const currentStage = Number(pick(raw, "currentStage", "current_stage"));
+  const activeStage = currentStage < stages.length ? stages[currentStage] : null;
 
   return {
-    admin: raw.admin,
-    treasury: raw.treasury,
-    tokenMint: raw.tokenMint,
-    tokenVault: raw.tokenVault,
-    pythPriceUpdate: raw.pythPriceUpdate,
-    currentStage: raw.currentStage,
-    paused: raw.paused,
-    totalTokensSold: BigInt(raw.totalTokensSold.toString()),
-    totalSolRaised: BigInt(raw.totalSolRaised.toString()),
+    admin: asPublicKey(pick(raw, "admin"), "admin"),
+    treasury: asPublicKey(pick(raw, "treasury"), "treasury"),
+    tokenMint: asPublicKey(pick(raw, "tokenMint", "token_mint"), "tokenMint"),
+    tokenVault: asPublicKey(
+      pick(raw, "tokenVault", "token_vault"),
+      "tokenVault"
+    ),
+    pythPriceUpdate: asPublicKey(
+      pick(raw, "pythPriceUpdate", "pyth_price_update"),
+      "pythPriceUpdate"
+    ),
+    currentStage,
+    paused: Boolean(pick(raw, "paused")),
+    totalTokensSold: BigInt(
+      pick(raw, "totalTokensSold", "total_tokens_sold").toString()
+    ),
+    totalSolRaised: BigInt(
+      pick(raw, "totalSolRaised", "total_sol_raised").toString()
+    ),
     stages,
     activeStage,
     usdRaisedFromTokens: usdRaised,

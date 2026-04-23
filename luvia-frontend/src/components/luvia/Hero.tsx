@@ -4,15 +4,35 @@ import { AnimatedNumber } from "./AnimatedNumber";
 import { Countdown } from "./Countdown";
 import { ParticleBg } from "./ParticleBg";
 import { Reveal } from "./Reveal";
+import { usePresaleState } from "@/hooks/usePresaleState";
+import {
+  BASE_UNIT_DIVISOR,
+  PER_STAGE_ALLOCATION_UI,
+  STAGE_PRICES_USD,
+} from "@/lib/solana/config";
 
 interface Props {
   endDate: Date;
 }
 
 export const Hero = ({ endDate }: Props) => {
-  const raised = 1_240_000;
-  const goal = 3_000_000;
+  const { data: presale } = usePresaleState();
+  const raised = Math.floor(presale?.usdRaisedFromTokens ?? 0);
+  const goal = Math.floor(
+    STAGE_PRICES_USD.reduce(
+      (acc, price) => acc + price * PER_STAGE_ALLOCATION_UI,
+      0
+    )
+  );
   const pct = (raised / goal) * 100;
+  const activeStageIndex = presale?.currentStage ?? 0;
+  const activeStage = presale?.activeStage;
+  const stagePrice = activeStage?.priceUsd ?? STAGE_PRICES_USD[0];
+  const stagePct =
+    activeStage && activeStage.allocation > 0n
+      ? (Number(activeStage.sold) / Number(activeStage.allocation)) * 100
+      : 0;
+  const soldUi = activeStage ? Number(activeStage.sold) / BASE_UNIT_DIVISOR : 0;
 
   return (
     <section className="relative w-full min-h-[92vh] overflow-hidden bg-[#050816] pt-20 sm:pt-24 lg:pt-28 pb-10">
@@ -152,7 +172,7 @@ export const Hero = ({ endDate }: Props) => {
             <div className="relative">
               <div className="flex items-center justify-between mb-2 border-b border-white/5 pb-2">
                 <div className="text-[10px] sm:text-[11px] uppercase tracking-widest text-muted-foreground font-medium">
-                  Round ending in
+                  Stage {activeStageIndex + 1} ending in
                 </div>
                 <div className="flex justify-end font-display font-bold text-white tracking-wider text-xs sm:text-sm origin-right">
                   <Countdown endDate={endDate} compact />
@@ -166,7 +186,7 @@ export const Hero = ({ endDate }: Props) => {
                 <div className="font-display text-xs sm:text-sm font-semibold text-white/95">
                   $<AnimatedNumber value={raised} />{" "}
                   <span className="text-muted-foreground font-normal whitespace-nowrap">
-                    / $3,000,000
+                    / ${goal.toLocaleString("en-US")}
                   </span>
                 </div>
               </div>
@@ -174,13 +194,25 @@ export const Hero = ({ endDate }: Props) => {
               <div className="h-2 rounded-full bg-secondary overflow-hidden relative">
                 <div
                   className="h-full bg-gradient-to-r from-[#7B3FE4] to-[#00D4FF] rounded-full relative animate-pulse-glow"
-                  style={{ width: `${pct}%` }}
+                  style={{ width: `${Math.min(100, pct)}%` }}
                 >
                   <div
                     className="absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent animate-shimmer"
                     style={{ backgroundSize: "200% 100%" }}
                   />
                 </div>
+              </div>
+
+              <div className="mt-2.5 flex items-center justify-between text-[10px] sm:text-[11px] text-muted-foreground">
+                <span>
+                  Stage {activeStageIndex + 1} price: ${stagePrice.toFixed(3)}
+                </span>
+                <span>{Math.min(100, stagePct).toFixed(2)}% sold</span>
+              </div>
+              <div className="mt-1 text-[10px] sm:text-[11px] text-muted-foreground">
+                {activeStage
+                  ? `${Math.floor(soldUi).toLocaleString("en-US")} / ${PER_STAGE_ALLOCATION_UI.toLocaleString("en-US")} LUVIA in current stage`
+                  : "Presale ended"}
               </div>
 
               <Button

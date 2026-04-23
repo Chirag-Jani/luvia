@@ -37,6 +37,7 @@ export const HERMES_ENDPOINT =
 
 /** LUVIA token always has 9 decimals (hardcoded in the program). */
 export const TOKEN_DECIMALS = 9;
+export const BASE_UNIT_DIVISOR = 1_000_000_000;
 
 /** Pyth receiver program id (same on devnet + mainnet). */
 export const PYTH_RECEIVER_PROGRAM_ID = new PublicKey(
@@ -45,9 +46,11 @@ export const PYTH_RECEIVER_PROGRAM_ID = new PublicKey(
 
 /** Stage metadata hardcoded in the program (order matters). */
 export const STAGE_PRICES_USD = [0.004, 0.006, 0.009, 0.012] as const;
+export const LISTING_PRICE_USD = 0.018;
 
 /** Per-stage allocation (375M LUVIA) — hardcoded in the program. */
 export const PER_STAGE_ALLOCATION_UI = 375_000_000;
+export const MIN_PURCHASE_USD = 10;
 
 /**
  * Optional presale end date. If unset the UI falls back to now + 60 days.

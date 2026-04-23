@@ -1,5 +1,5 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { LAMPORTS_PER_SOL } from "@solana/web3.js";
+import { LAMPORTS_PER_SOL, PublicKey } from "@solana/web3.js";
 
 import { connection } from "@/lib/solana/connection";
 import { buildBuyTokensTransactions } from "@/lib/solana/buyTokens";
@@ -41,6 +41,11 @@ export function useBuyTokens() {
       if (!presale.activeStage) {
         throw new Error("The presale has ended — all stages are sold out.");
       }
+      if (!(presale.tokenMint instanceof PublicKey)) {
+        throw new Error(
+          "Invalid on-chain config (token mint missing). Please refresh and retry."
+        );
+      }
       if (!Number.isFinite(solAmount) || solAmount <= 0) {
         throw new Error("Enter a valid SOL amount.");
       }
@@ -50,21 +55,108 @@ export function useBuyTokens() {
         throw new Error("Amount too small — minimum is 1 lamport.");
       }
 
-      const { transactions } = await buildBuyTokensTransactions({
-        buyer: publicKey,
-        solLamports,
-        tokenMint: presale.tokenMint,
-      });
+      let transactions: Awaited<
+        ReturnType<typeof buildBuyTokensTransactions>
+      >["transactions"];
+      try {
+        const built = await buildBuyTokensTransactions({
+          buyer: publicKey,
+          solLamports,
+          tokenMint: presale.tokenMint,
+        });
+        transactions = built.transactions;
+      } catch (err) {
+        const message =
+          err instanceof Error ? err.message : "Unknown transaction build error";
+        throw new Error(`Failed while building buy transaction: ${message}`);
+      }
 
       if (transactions.length === 0) {
         throw new Error("Failed to build transaction.");
       }
 
+      let signedTransactions = transactions;
+      let usedBatchSigning = false;
+      if (
+        transactions.length > 1 &&
+        typeof walletProvider.signAllTransactions === "function"
+      ) {
+        try {
+          signedTransactions = await walletProvider.signAllTransactions(transactions);
+          usedBatchSigning = true;
+        } catch (err) {
+          const message =
+            err instanceof Error ? err.message : "Unknown batch signing error";
+          throw new Error(`Failed while batch-signing buy transactions: ${message}`);
+        }
+      }
+
       let lastSignature = "";
-      for (const tx of transactions) {
-        const signature = await walletProvider.signAndSendTransaction(tx);
-        await connection.confirmTransaction(signature, "confirmed");
-        lastSignature = signature;
+      for (let i = 0; i < transactions.length; i += 1) {
+        const tx = signedTransactions[i] ?? transactions[i];
+        let signature = "";
+        try {
+          // Prefer already-signed txs (from signAllTransactions) to avoid
+          // multiple wallet prompts; otherwise sign per tx as fallback.
+          if (usedBatchSigning) {
+            const raw = tx.serialize();
+            signature = await connection.sendRawTransaction(raw, {
+              skipPreflight: true,
+              maxRetries: 0,
+              preflightCommitment: "confirmed",
+            });
+          } else if (typeof walletProvider.signTransaction === "function") {
+            const signed = await walletProvider.signTransaction(tx);
+            const raw = signed.serialize();
+            signature = await connection.sendRawTransaction(raw, {
+              skipPreflight: true,
+              maxRetries: 0,
+              preflightCommitment: "confirmed",
+            });
+          } else {
+            signature = await walletProvider.signAndSendTransaction(tx);
+          }
+        } catch (err) {
+          const message =
+            err instanceof Error ? err.message : "Unknown signing/sending error";
+          throw new Error(`Failed while signing/sending buy transaction: ${message}`);
+        }
+
+        try {
+          const { blockhash, lastValidBlockHeight } =
+            await connection.getLatestBlockhash("confirmed");
+          const res = await connection.confirmTransaction(
+            { signature, blockhash, lastValidBlockHeight },
+            "confirmed"
+          );
+          if (res.value.err) {
+            throw new Error(
+              `Transaction failed on-chain: ${JSON.stringify(res.value.err)}`
+            );
+          }
+          lastSignature = signature;
+        } catch (err) {
+          try {
+            const status = await connection.getSignatureStatus(signature, {
+              searchTransactionHistory: true,
+            });
+            const s = status.value;
+            if (
+              s &&
+              !s.err &&
+              (s.confirmationStatus === "confirmed" ||
+                s.confirmationStatus === "finalized")
+            ) {
+              lastSignature = signature;
+              continue;
+            }
+          } catch {
+            // fall through to rethrow below
+          }
+          const message =
+            err instanceof Error ? err.message : "Unknown confirmation error";
+          throw new Error(`Failed while confirming buy transaction: ${message}`);
+        }
       }
 
       return { signature: lastSignature };

@@ -38,7 +38,6 @@ export default defineConfig(({ mode }) => ({
       "@tanstack/react-query",
       "@tanstack/query-core",
       "@solana/web3.js",
-      "@coral-xyz/anchor",
       "bn.js",
     ],
   },

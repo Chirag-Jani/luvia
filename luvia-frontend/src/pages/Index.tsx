@@ -14,12 +14,19 @@ import { UseCases } from "@/components/luvia/UseCases";
 import { Partners } from "@/components/luvia/Partners";
 import { FAQ } from "@/components/luvia/FAQ";
 import { Footer } from "@/components/luvia/Footer";
+import { PRESALE_END_DATE } from "@/lib/solana/config";
 
 const Index = () => {
   const endDate = useMemo(() => {
-    const d = new Date();
-    d.setDate(d.getDate() + 60);
-    return d;
+    if (PRESALE_END_DATE) {
+      const parsed = new Date(PRESALE_END_DATE);
+      if (!Number.isNaN(parsed.getTime())) {
+        return parsed;
+      }
+    }
+    const fallback = new Date();
+    fallback.setDate(fallback.getDate() + 60);
+    return fallback;
   }, []);
 
   return (
