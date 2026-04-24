@@ -31,14 +31,15 @@ pub mod luvia_presale {
     use super::*;
 
     /// One-time setup. Creates config + treasury PDA + vault ATA, burns hardcoded stage config.
-    pub fn initialize(ctx: Context<Initialize>) -> Result<()> {
+    /// The transaction signer is the initializer/payer; `initial_admin` can be any pubkey.
+    pub fn initialize(ctx: Context<Initialize>, initial_admin: Pubkey) -> Result<()> {
         require!(
             ctx.accounts.token_mint.decimals == TOKEN_DECIMALS,
             PresaleError::InvalidMintDecimals
         );
 
         let cfg = &mut ctx.accounts.presale_config;
-        cfg.admin = ctx.accounts.admin.key();
+        cfg.admin = initial_admin;
         cfg.treasury = ctx.accounts.treasury.key();
         cfg.token_mint = ctx.accounts.token_mint.key();
         cfg.token_vault = ctx.accounts.token_vault.key();
@@ -352,11 +353,11 @@ pub mod luvia_presale {
 #[derive(Accounts)]
 pub struct Initialize<'info> {
     #[account(mut)]
-    pub admin: Signer<'info>,
+    pub initializer: Signer<'info>,
 
     #[account(
         init,
-        payer = admin,
+        payer = initializer,
         space = 8 + PresaleConfig::INIT_SPACE,
         seeds = [PRESALE_SEED],
         bump,
@@ -376,7 +377,7 @@ pub struct Initialize<'info> {
 
     #[account(
         init,
-        payer = admin,
+        payer = initializer,
         associated_token::mint = token_mint,
         associated_token::authority = presale_config,
         associated_token::token_program = token_program,
@@ -390,6 +391,7 @@ pub struct Initialize<'info> {
     pub associated_token_program: Program<'info, AssociatedToken>,
     pub system_program: Program<'info, System>,
 }
+
 
 #[derive(Accounts)]
 pub struct BuyTokens<'info> {
@@ -440,6 +442,7 @@ pub struct BuyTokens<'info> {
     pub system_program: Program<'info, System>,
 }
 
+
 #[derive(Accounts)]
 pub struct AdminOnly<'info> {
     pub admin: Signer<'info>,
@@ -474,6 +477,7 @@ pub struct WithdrawSol<'info> {
 
     pub system_program: Program<'info, System>,
 }
+
 
 #[derive(Accounts)]
 pub struct WithdrawUnsoldTokens<'info> {
@@ -513,6 +517,7 @@ pub struct WithdrawUnsoldTokens<'info> {
     pub associated_token_program: Program<'info, AssociatedToken>,
     pub system_program: Program<'info, System>,
 }
+
 
 // -----------------------------------------------------------------------------
 // Helpers

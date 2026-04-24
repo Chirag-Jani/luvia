@@ -19,9 +19,9 @@ Production-ready Solana Anchor program for the LUVIA token public sale.
 | Decimals | 9 |
 | Total supply | 10,000,000,000 LUVIA |
 | Presale allocation | 1,500,000,000 LUVIA (15% — 4 × 375M) |
-| Non-presale allocation | 8,500,000,000 LUVIA (85% — admin wallet: team, marketing, liquidity, reserves) |
+| Non-presale allocation | 8,500,000,000 LUVIA (85% — deployer/initializer wallet by default in script; can be distributed as needed) |
 
-The mint is created externally in the deploy script with the admin as mint authority. You can permanently renounce mint authority (`RENOUNCE_MINT_AUTHORITY=true yarn deploy`) so supply is forever fixed at 10B.
+The mint is created externally in the deploy script with the deployer/initializer as mint authority. Presale admin is set independently via `initialize(initial_admin)`. You can permanently renounce mint authority (`RENOUNCE_MINT_AUTHORITY=true yarn deploy`) so supply is forever fixed at 10B.
 
 ---
 
@@ -74,15 +74,27 @@ The mint is created externally in the deploy script with the admin as mint autho
 
 ---
 
+
+## Frontend integration status (Apr 2026)
+
+- Frontend is wired to live on-chain reads/writes on devnet.
+- Pyth update posting + `buy_tokens` execution is integrated and functioning.
+- Transaction count can vary by payload/runtime constraints; UX is optimized to reduce repeated wallet prompts where adapter APIs allow batch signing.
+- `presale_config.pyth_price_update` is informational; runtime accepts any valid fresh account for the configured SOL/USD feed id.
+
+---
+
 ## Instructions
 
 All signatures are simplified — see `programs/luvia_presale/src/lib.rs` for the full accounts structs.
 
-### `initialize()`
+### `initialize(initial_admin: Pubkey)`
 
 One-time setup. Creates `presale_config`, `treasury`, and `token_vault`. Writes the hardcoded stage table. Requires the mint to be Token-2022 with 9 decimals.
 
-**Signer:** admin (also the payer for all account rent)
+`initial_admin` is explicitly stored as admin, so deployer/initializer and admin can be different wallets.
+
+**Signer:** initializer (payer for account rent)
 **Emits:** `PresaleInitialized`
 
 ### `buy_tokens(sol_amount: u64)`
@@ -159,11 +171,11 @@ Admin reclaims LUVIA from the vault — either mid-presale (after pausing / skip
 
 ```
 1. yarn deploy
-   ├─ create Token-2022 mint (9 decimals, admin = mint authority)
-   ├─ mint 10,000,000,000 LUVIA to admin's ATA
-   ├─ call initialize() on the program
-   │    └─ creates presale_config PDA, treasury PDA, vault ATA
-   └─ transfer 1,500,000,000 LUVIA from admin ATA → vault
+   ├─ create Token-2022 mint (9 decimals, deployer = mint authority)
+   ├─ mint 10,000,000,000 LUVIA to deployer ATA
+   ├─ call initialize(initial_admin) on the program
+   │    └─ sets presale admin to `initial_admin` and creates presale_config PDA, treasury PDA, vault ATA
+   └─ transfer 1,500,000,000 LUVIA from deployer ATA → vault
 2. (optional) RENOUNCE_MINT_AUTHORITY=true yarn deploy
    └─ permanently lock total supply at 10B
 ```
@@ -174,14 +186,12 @@ Presale is now live.
 
 ```
 1. frontend fetches current_stage + stages[i].price_micro_usd from presale_config
-2. frontend fetches live SOL/USD from Pyth Hermes (https://hermes.pyth.network)
-3. frontend builds ONE versioned transaction with two instructions:
-     ix#1: Pyth receiver postPriceUpdate → creates fresh PriceUpdateV2 account
-     ix#2: luvia_presale.buy_tokens(sol_amount)
-           ├─ SOL  → treasury PDA  (system_program::transfer, signed by buyer)
-           └─ LUVIA → buyer ATA    (transfer_checked, signed by config PDA)
-4. buyer's wallet signs and submits
-5. LUVIA appears in buyer's wallet the same slot
+2. frontend fetches live SOL/USD update payload from Pyth Hermes (https://hermes.pyth.network)
+3. frontend builds a transaction bundle via Pyth receiver + buy_tokens
+     - includes a fresh SOL/USD PriceUpdateV2 account + `buy_tokens(sol_amount)`
+     - depending on payload size and CU budget, this can be 1 or more txs
+4. wallet signs (batch-sign when supported) and frontend submits sequentially
+5. on successful final confirmation, LUVIA is delivered to buyer ATA
 ```
 
 ### Admin (ongoing)
@@ -264,7 +274,10 @@ Outputs:
 ### Deploy to devnet
 
 ```bash
-# Make sure the admin wallet has SOL
+# Make sure the deployer wallet has SOL
+
+# Optional: set a dedicated client/admin wallet distinct from deployer
+# export INITIAL_ADMIN="<CLIENT_ADMIN_PUBKEY>"
 solana airdrop 5 --url devnet
 
 # Deploy the program
@@ -383,7 +396,7 @@ contracts/
 - **Rent for new buyer ATAs is paid by the buyer.** First-time buyers pay ~0.002 SOL extra on their first purchase.
 - **No reentrancy concerns on Solana** — CPI order is: SOL transfer → token transfer → state commit. A partial failure in any step reverts the whole transaction atomically.
 - **Integer math uses u128** for the intermediate `sol_lamports × sol_price_micro / token_price_micro` multiplication; final quantities fit safely in u64.
-- **The mint authority remains with admin** unless you run `RENOUNCE_MINT_AUTHORITY=true yarn deploy`. Until renounced, admin can mint arbitrary additional supply. Renounce before going public if fixed supply is a marketing claim.
+- **The mint authority remains with deployer/initializer** unless you run `RENOUNCE_MINT_AUTHORITY=true yarn deploy`. Until renounced, that key can mint arbitrary additional supply. Renounce before going public if fixed supply is a marketing claim.
 - **`withdraw_unsold_tokens` does not check current stage.** Admin can, in principle, drain the vault mid-stage and brick ongoing buys (they'll fail with `InsufficientVaultBalance`). Pause first, withdraw, re-fund or unpause.
 
 ---

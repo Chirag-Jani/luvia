@@ -191,9 +191,9 @@ describe("luvia_presale", () => {
     const placeholderPyth = Keypair.generate().publicKey;
 
     await program.methods
-      .initialize()
+      .initialize(admin.publicKey)
       .accountsStrict({
-        admin: admin.publicKey,
+        initializer: admin.publicKey,
         presaleConfig,
         treasury,
         tokenMint: mint,

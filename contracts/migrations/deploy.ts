@@ -8,10 +8,10 @@
  *   yarn run ts-node migrations/deploy.ts
  *
  * What it does:
- *   1. Loads the provider wallet as the admin.
+ *   1. Loads the provider wallet as deployer/initializer.
  *   2. Creates a Token-2022 LUVIA mint (9 decimals) with the admin as the initial mint authority.
  *   3. Mints the full 10,000,000,000 LUVIA supply to the admin.
- *   4. Calls `initialize` on the presale program (creates config PDA, treasury PDA, vault ATA).
+ *   4. Calls `initialize(initialAdmin)` on the presale program.
  *   5. Transfers 1,500,000,000 LUVIA (4 × 375M public-sale allocation) from admin → vault.
  *   6. (Optional) renounces mint authority so supply is fixed forever.
  *
@@ -65,6 +65,11 @@ const DEFAULT_SOL_USD_PRICE_UPDATE_DEVNET =
 const RENOUNCE_MINT_AUTHORITY =
   (process.env.RENOUNCE_MINT_AUTHORITY ?? "false").toLowerCase() === "true";
 
+
+// Optional: set a different admin than the deployer/initializer.
+// If unset, deployer wallet becomes admin.
+const INITIAL_ADMIN = process.env.INITIAL_ADMIN;
+
 // --------------------------------------------------------------------------
 
 async function main() {
@@ -72,19 +77,23 @@ async function main() {
   anchor.setProvider(provider);
 
   const program = anchor.workspace.luviaPresale as Program<LuviaPresale>;
-  const admin = provider.wallet as anchor.Wallet;
+  const deployer = provider.wallet as anchor.Wallet;
   const connection = provider.connection;
+  const initialAdmin = INITIAL_ADMIN
+    ? new PublicKey(INITIAL_ADMIN)
+    : deployer.publicKey;
 
   console.log("== LUVIA presale deploy ==");
   console.log("cluster :", connection.rpcEndpoint);
-  console.log("admin   :", admin.publicKey.toBase58());
+  console.log("deployer:", deployer.publicKey.toBase58());
+  console.log("admin   :", initialAdmin.toBase58());
   console.log("program :", program.programId.toBase58());
 
-  const adminBalance = await connection.getBalance(admin.publicKey);
-  console.log("admin SOL:", adminBalance / LAMPORTS_PER_SOL);
-  if (adminBalance < 0.5 * LAMPORTS_PER_SOL) {
+  const deployerBalance = await connection.getBalance(deployer.publicKey);
+  console.log("deployer SOL:", deployerBalance / LAMPORTS_PER_SOL);
+  if (deployerBalance < 0.5 * LAMPORTS_PER_SOL) {
     console.warn(
-      "! admin has less than 0.5 SOL — deploy / init may fail. Airdrop more before proceeding."
+      "! deployer has less than 0.5 SOL — deploy / init may fail. Airdrop more before proceeding."
     );
   }
 
@@ -112,9 +121,9 @@ async function main() {
     console.log("creating Token-2022 mint ...");
     await createMint(
       connection,
-      admin.payer,
-      admin.publicKey, // mint authority
-      admin.publicKey, // freeze authority (can be null; kept for emergency burn flows)
+      deployer.payer,
+      deployer.publicKey, // mint authority
+      deployer.publicKey, // freeze authority (can be null; kept for emergency burn flows)
       TOKEN_DECIMALS,
       mintKp,
       undefined,
@@ -130,9 +139,9 @@ async function main() {
   // ------------------------------------------------------------------------
   const adminAta = await createAssociatedTokenAccountIdempotent(
     connection,
-    admin.payer,
+    deployer.payer,
     mintKp.publicKey,
-    admin.publicKey,
+    deployer.publicKey,
     {},
     TOKEN_2022_PROGRAM_ID
   );
@@ -147,10 +156,10 @@ async function main() {
     console.log(`minting ${toMint} base units to admin ATA ${adminAta.toBase58()} ...`);
     await mintTo(
       connection,
-      admin.payer,
+      deployer.payer,
       mintKp.publicKey,
       adminAta,
-      admin.publicKey,
+      deployer.publicKey,
       toMint,
       [],
       undefined,
@@ -194,9 +203,9 @@ async function main() {
   if (!existingConfig) {
     console.log("calling initialize ...");
     const sig = await program.methods
-      .initialize()
+      .initialize(initialAdmin)
       .accountsStrict({
-        admin: admin.publicKey,
+        initializer: deployer.publicKey,
         presaleConfig,
         treasury,
         tokenMint: mintKp.publicKey,
@@ -226,11 +235,11 @@ async function main() {
     console.log(`transferring ${toTransfer} base units to vault ...`);
     await transferChecked(
       connection,
-      admin.payer,
+      deployer.payer,
       adminAta,
       mintKp.publicKey,
       vault,
-      admin.publicKey,
+      deployer.publicKey,
       toTransfer,
       TOKEN_DECIMALS,
       [],
@@ -249,9 +258,9 @@ async function main() {
     console.log("renouncing mint authority (supply becomes fixed forever) ...");
     await setAuthority(
       connection,
-      admin.payer,
+      deployer.payer,
       mintKp.publicKey,
-      admin.publicKey,
+      deployer.publicKey,
       AuthorityType.MintTokens,
       null,
       [],

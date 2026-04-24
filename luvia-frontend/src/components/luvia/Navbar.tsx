@@ -1,9 +1,9 @@
+import { ConnectWalletButton } from "@/components/luvia/ConnectWalletButton";
+import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
+import { Menu, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { Menu, X } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { ConnectWalletButton } from "@/components/luvia/ConnectWalletButton";
-import { cn } from "@/lib/utils";
 
 const links = [
   { label: "About", href: "#about" },
@@ -28,20 +28,21 @@ export const Navbar = () => {
     <header
       className={cn(
         "fixed top-0 inset-x-0 z-50 transition-all duration-500",
-        scrolled ? "py-3" : "py-5"
+        scrolled ? "py-3" : "py-5",
       )}
     >
       <div
         className={cn(
           "container flex items-center justify-between transition-all duration-500 rounded-2xl",
-          scrolled && "bg-background/60 backdrop-blur-xl border border-border/60 px-4 py-3"
+          scrolled &&
+            "bg-background/60 backdrop-blur-xl border border-border/60 px-4 py-3",
         )}
       >
         <a href="#" className="flex items-center gap-2 group">
-          <div className="w-8 h-8 rounded-lg bg-gradient-violet-cyan grid place-items-center font-display font-bold text-primary-foreground shadow-[var(--shadow-glow)]">
-            L
-          </div>
-          <span className="font-display font-bold text-xl tracking-wide">LUVIA</span>
+          <img src="/logo_tp.png" alt="LUVIA" className="w-16 h-16" />
+          <span className="font-display font-bold text-xl tracking-wide">
+            LUVIA
+          </span>
         </a>
 
         <nav className="hidden md:flex items-center gap-8">
@@ -87,7 +88,9 @@ export const Navbar = () => {
             ))}
             <ConnectWalletButton variant="outline" className="w-full" />
             <Button variant="hero" asChild>
-              <Link to="/buy" onClick={() => setOpen(false)}>Buy $LUVIA</Link>
+              <Link to="/buy" onClick={() => setOpen(false)}>
+                Buy $LUVIA
+              </Link>
             </Button>
           </div>
         </div>
