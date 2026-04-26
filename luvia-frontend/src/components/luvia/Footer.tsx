@@ -42,7 +42,12 @@ export const Footer = () => (
               </a>
             </li>
             <li>
-              <a href="#" className="text-foreground/80 hover:text-primary">
+              <a
+                href="/LUVIA Whitepaper.pdf"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-foreground/80 hover:text-primary"
+              >
                 Whitepaper
               </a>
             </li>

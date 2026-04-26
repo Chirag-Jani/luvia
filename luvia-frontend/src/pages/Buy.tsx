@@ -47,6 +47,7 @@ import {
 import { connection } from "@/lib/solana/connection";
 import {
   CLUSTER,
+  LISTING_PRICE_USD,
   MIN_PURCHASE_USD,
   PER_STAGE_ALLOCATION_UI,
   PRESALE_END_DATE,
@@ -495,7 +496,9 @@ const Buy = () => {
                       <div className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground whitespace-nowrap">
                         <span>Listing</span>
                         <ArrowRight className="w-3.5 h-3.5" />
-                        <span className="text-foreground/90">$0.018</span>
+                        <span className="text-foreground/90">
+                          ${LISTING_PRICE_USD.toFixed(3)}
+                        </span>
                       </div>
                     )}
                   </div>
