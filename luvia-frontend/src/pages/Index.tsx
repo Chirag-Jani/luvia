@@ -15,9 +15,15 @@ import { Partners } from "@/components/luvia/Partners";
 import { FAQ } from "@/components/luvia/FAQ";
 import { Footer } from "@/components/luvia/Footer";
 import { PRESALE_END_DATE } from "@/lib/solana/config";
+import { usePresaleState } from "@/hooks/usePresaleState";
 
 const Index = () => {
+  const { data: presale } = usePresaleState();
+
   const endDate = useMemo(() => {
+    if (presale?.presaleEndTs) {
+      return new Date(presale.presaleEndTs * 1000);
+    }
     if (PRESALE_END_DATE) {
       const parsed = new Date(PRESALE_END_DATE);
       if (!Number.isNaN(parsed.getTime())) {
@@ -27,7 +33,7 @@ const Index = () => {
     const fallback = new Date();
     fallback.setDate(fallback.getDate() + 60);
     return fallback;
-  }, []);
+  }, [presale?.presaleEndTs]);
 
   return (
     <main className="min-h-screen bg-background text-foreground overflow-x-hidden">
@@ -46,8 +52,6 @@ const Index = () => {
       <Partners />
       <FAQ />
       <Footer />
-      {/* keep endDate referenced to avoid TS unused warning */}
-      <span className="hidden" data-end={endDate.toISOString()} />
     </main>
   );
 };

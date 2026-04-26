@@ -2,7 +2,7 @@
 
 Production-ready Solana Anchor program for the LUVIA token public sale.
 
-- 4-stage bonding-curve presale with hardcoded prices ($0.004 → $0.006 → $0.009 → $0.012)
+- 4-stage bonding-curve presale with hardcoded prices ($0.01 → $0.015 → $0.02 → $0.025)
 - SOL payments, live SOL/USD priced via Pyth pull oracle, tokens delivered instantly
 - Token-2022 (SPL Token Extensions) mint, 9 decimals
 - All SOL custodied in a program-owned treasury PDA (not a wallet) — admin withdraws via signed CPI
@@ -29,10 +29,10 @@ The mint is created externally in the deploy script with the deployer/initialize
 
 | Stage | Price (USD) | Allocation | Cumulative |
 |---|---|---|---|
-| 1 | $0.004 | 375,000,000 | 375,000,000 |
-| 2 | $0.006 | 375,000,000 | 750,000,000 |
-| 3 | $0.009 | 375,000,000 | 1,125,000,000 |
-| 4 | $0.012 | 375,000,000 | 1,500,000,000 |
+| 1 | $0.01 | 375,000,000 | 375,000,000 |
+| 2 | $0.015 | 375,000,000 | 750,000,000 |
+| 3 | $0.02 | 375,000,000 | 1,125,000,000 |
+| 4 | $0.025 | 375,000,000 | 1,500,000,000 |
 
 **Auto-advance:** when a stage sells its full allocation, the program increments `current_stage` in the same transaction. A single large buy can straddle multiple stages at their respective prices.
 
@@ -45,7 +45,7 @@ The mint is created externally in the deploy script with the deployer/initialize
 ### Program
 
 - Crate: `programs/luvia_presale`
-- Default program ID: `H6DXYanZ9uiDsUqwsXu7GKNH1E1WHdqKoJr9JqqzA8cP`
+- Default program ID: `Fxgt8HY2fgnhef62Sx6HUowLh6uQti6dpe6rJmUV5qGP`
 - Framework: Anchor 0.31.1
 
 ### PDAs
@@ -88,11 +88,11 @@ The mint is created externally in the deploy script with the deployer/initialize
 
 All signatures are simplified — see `programs/luvia_presale/src/lib.rs` for the full accounts structs.
 
-### `initialize(initial_admin: Pubkey)`
+### `initialize(initial_admin: Pubkey, presale_start_ts: i64, presale_end_ts: i64, min_purchase_micro_usd: u64)`
 
 One-time setup. Creates `presale_config`, `treasury`, and `token_vault`. Writes the hardcoded stage table. Requires the mint to be Token-2022 with 9 decimals.
 
-`initial_admin` is explicitly stored as admin, so deployer/initializer and admin can be different wallets.
+`initial_admin` is explicitly stored as admin, so deployer/initializer and admin can be different wallets. `presale_start_ts` / `presale_end_ts` are on-chain source-of-truth window boundaries. `min_purchase_micro_usd` configures the initial minimum purchase (USD micro-units).
 
 **Signer:** initializer (payer for account rent)
 **Emits:** `PresaleInitialized`
@@ -125,6 +125,13 @@ Toggles `presale_config.paused`. `buy_tokens` fails with `PresalePaused` while t
 
 **Signer:** admin
 **Emits:** `PausedChanged { paused }`
+
+### `set_min_purchase(min_purchase_micro_usd: u64)`
+
+Admin-only update of the minimum purchase threshold used by `buy_tokens`. Value is in micro-USD (`$10.00 = 10_000_000`).
+
+**Signer:** admin
+**Emits:** `MinPurchaseUpdated { admin, min_purchase_micro_usd }`
 
 ### `withdraw_sol(amount: u64)`
 
@@ -162,6 +169,9 @@ Admin reclaims LUVIA from the vault — either mid-presale (after pausing / skip
 | `InsufficientTreasuryBalance` | `withdraw_sol` amount exceeds `treasury - rent-exempt` |
 | `InvalidMint` / `InvalidVault` | Passed-in account doesn't match the one in config |
 | `InvalidMintDecimals` | Mint decimals ≠ 9 |
+| `PresaleNotStarted` | Buy attempted before configured start timestamp |
+| `PresaleWindowClosed` | Buy attempted after configured end timestamp |
+| `MinPurchaseNotMet` | Buy amount below configured minimum purchase |
 
 ---
 
@@ -173,8 +183,8 @@ Admin reclaims LUVIA from the vault — either mid-presale (after pausing / skip
 1. yarn deploy
    ├─ create Token-2022 mint (9 decimals, deployer = mint authority)
    ├─ mint 10,000,000,000 LUVIA to deployer ATA
-   ├─ call initialize(initial_admin) on the program
-   │    └─ sets presale admin to `initial_admin` and creates presale_config PDA, treasury PDA, vault ATA
+   ├─ call initialize(initial_admin, presale_start_ts, presale_end_ts, min_purchase_micro_usd)
+   │    └─ sets presale admin + sale window + minimum purchase and creates presale_config PDA, treasury PDA, vault ATA
    └─ transfer 1,500,000,000 LUVIA from deployer ATA → vault
 2. (optional) RENOUNCE_MINT_AUTHORITY=true yarn deploy
    └─ permanently lock total supply at 10B
@@ -199,6 +209,7 @@ Presale is now live.
 ```
 • advance_stage                 — cut a stage short (skipped tokens stay in vault)
 • pause / unpause               — emergency stop
+• set_min_purchase(micro_usd)   — update minimum buy threshold
 • withdraw_sol(amount)          — drain part/all of treasury to admin wallet
 • withdraw_unsold_tokens(amt)   — reclaim vault tokens (pass u64::MAX to sweep)
 ```
@@ -226,6 +237,7 @@ PresaleInitialized { admin, treasury, token_mint, token_vault, pyth_price_update
 TokensPurchased    { buyer, sol_spent, tokens_received, stage_at_purchase, stage_after }
 StageAdvanced      { previous_stage, new_stage, manual }
 PausedChanged      { paused }
+MinPurchaseUpdated { admin, min_purchase_micro_usd }
 SolWithdrawn       { admin, amount }
 UnsoldTokensWithdrawn { admin, destination, amount, vault_remaining }
 ```
@@ -278,6 +290,9 @@ Outputs:
 
 # Optional: set a dedicated client/admin wallet distinct from deployer
 # export INITIAL_ADMIN="<CLIENT_ADMIN_PUBKEY>"
+# export PRESALE_START_TS="1777262400"      # 2026-04-27 00:00 EDT
+# export PRESALE_END_TS="1782496800"        # 2026-06-26 14:00 EDT
+# export MIN_PURCHASE_MICRO_USD="10000000"  # $10.00
 solana airdrop 5 --url devnet
 
 # Deploy the program
@@ -290,7 +305,7 @@ yarn deploy
 RENOUNCE_MINT_AUTHORITY=true yarn deploy
 ```
 
-The first `anchor deploy` keeps the program id pinned in `Anchor.toml` (`H6DXYanZ9uiDsUqwsXu7GKNH1E1WHdqKoJr9JqqzA8cP`). To use a fresh id (e.g. for mainnet), generate a new keypair:
+The first `anchor deploy` keeps the program id pinned in `Anchor.toml` (`Fxgt8HY2fgnhef62Sx6HUowLh6uQti6dpe6rJmUV5qGP`). To use a fresh id (e.g. for mainnet), generate a new keypair:
 
 ```bash
 solana-keygen new -o target/deploy/luvia_presale-keypair.json

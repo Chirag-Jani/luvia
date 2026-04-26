@@ -1,6 +1,6 @@
 # LUVIA Project Status
 
-Last updated: 2026-04-24
+Last updated: 2026-04-25
 
 ## Overall
 
@@ -11,6 +11,8 @@ Core contract integration is live and wired end-to-end on frontend (devnet-focus
 - buy flow with Pyth pricing updates
 - admin controls
 - hidden `/admin` page with wallet + on-chain admin verification and tabbed controls
+- on-chain sale window enforcement (start/end timestamps) added to contract buy validation
+- on-chain minimum purchase config added and admin-adjustable via `/admin`
 
 Buy flow is functional and confirmed working.
 
@@ -38,15 +40,16 @@ Buy flow is functional and confirmed working.
 
 - initialize now accepts explicit `initial_admin` (deployer can assign client wallet as admin)
 - network default: `devnet`
-- program id default: `H6DXYanZ9uiDsUqwsXu7GKNH1E1WHdqKoJr9JqqzA8cP`
+- program id default: `Fxgt8HY2fgnhef62Sx6HUowLh6uQti6dpe6rJmUV5qGP`
 - token decimals: `9`
-- stage display prices in frontend config: `0.004, 0.006, 0.009, 0.012`
-- minimum purchase UI guard: `$10`
-- listing display price: `$0.018`
+- stage display prices in frontend config: `0.01, 0.015, 0.02, 0.025`
+- minimum purchase default: `$10` (now on-chain configurable by admin)
+- listing display price: `$0.10`
 
 ## Notes on buy transaction UX
 
 - Flow is integrated and working.
+- Buy now enforces on-chain sale window and on-chain minimum purchase.
 - Depending on oracle payload/runtime limits, buy may be built as a transaction bundle rather than a single tx.
 - Frontend uses wallet capabilities to minimize repeated signing prompts where possible.
 
@@ -61,7 +64,7 @@ Buy flow is functional and confirmed working.
 7. Can you provide the final marketing copy for static landing sections (About, Features, How It Works, Use Cases, FAQ, etc.)?
 8. Please share the production Reown project ID and any wallet policy/restrictions we must enforce.
 9. Which production RPC provider(s) should we use, and what uptime/reliability requirements should we target?
-10. Is the minimum purchase amount fixed at $10, or should it be configurable?
+10. For allocation buckets with vesting, please confirm exact cliff + unlock cadence per bucket (monthly linear, quarterly, etc.).
 
 ## Operational next-step checklist
 

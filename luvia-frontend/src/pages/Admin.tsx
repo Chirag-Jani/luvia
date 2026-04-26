@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
@@ -24,6 +24,7 @@ import {
   unpausePresale,
   withdrawPresaleSol,
   withdrawUnsoldTokens,
+  setMinimumPurchaseUsd,
 } from "@/lib/solana/admin";
 import { connection } from "@/lib/solana/connection";
 
@@ -45,6 +46,7 @@ const Admin = () => {
 
   const [withdrawSolAmount, setWithdrawSolAmount] = useState("0.1");
   const [withdrawTokenAmount, setWithdrawTokenAmount] = useState("0");
+  const [minPurchaseUsd, setMinPurchaseUsd] = useState("10");
 
   const isAdmin = Boolean(
     connected && publicKey && presale && publicKey.equals(presale.admin)
@@ -100,6 +102,14 @@ const Admin = () => {
     return Number(presale.totalTokensSold) / BASE_UNIT_DIVISOR;
   }, [presale]);
 
+  const currentMinPurchaseUsd = presale?.minPurchaseUsd ?? 10;
+
+  useEffect(() => {
+    if (presale?.minPurchaseUsd) {
+      setMinPurchaseUsd(presale.minPurchaseUsd.toFixed(2));
+    }
+  }, [presale?.minPurchaseUsd]);
+
   const totalRemainingUi = useMemo(() => {
     if (!presale) return 0;
     const remainingBase = presale.stages.reduce(
@@ -152,6 +162,24 @@ const Admin = () => {
       }
       const lamports = BigInt(Math.floor(solNum * LAMPORTS_PER_SOL));
       return withdrawPresaleSol({ admin: publicKey, walletProvider, lamports });
+    },
+    onSuccess: () => refresh(),
+  });
+
+
+  const adminSetMinPurchase = useMutation({
+    mutationFn: async () => {
+      if (!publicKey || !isAdmin) throw new Error("Admin wallet required.");
+      if (!walletProvider) throw new Error("Connect wallet first.");
+      const v = parseFloat(minPurchaseUsd);
+      if (!Number.isFinite(v) || v <= 0) {
+        throw new Error("Enter valid minimum purchase in USD.");
+      }
+      return setMinimumPurchaseUsd({
+        admin: publicKey,
+        walletProvider,
+        minPurchaseUsd: v,
+      });
     },
     onSuccess: () => refresh(),
   });
@@ -278,6 +306,9 @@ const Admin = () => {
               <div className="mt-1 text-foreground/90">
                 {presale?.activeStage ? `$${presale.activeStage.priceUsd.toFixed(3)}` : "Ended"}
               </div>
+              <div className="mt-1 text-[11px] text-muted-foreground">
+                Min buy: ${currentMinPurchaseUsd.toFixed(2)}
+              </div>
             </div>
           </div>
         </section>
@@ -381,10 +412,38 @@ const Admin = () => {
                         adminUnpause.isPending ||
                         adminAdvanceStage.isPending ||
                         adminWithdrawSol.isPending ||
-                        adminWithdrawUnsold.isPending
+                        adminWithdrawUnsold.isPending ||
+                        adminSetMinPurchase.isPending
                       }
                     >
                       Refresh State
+                    </Button>
+                  </div>
+
+                  <div className="grid sm:grid-cols-[1fr_auto] gap-3 items-end">
+                    <div>
+                      <label className="text-xs uppercase tracking-widest text-muted-foreground">
+                        Minimum Purchase (USD)
+                      </label>
+                      <Input
+                        value={minPurchaseUsd}
+                        onChange={(e) => setMinPurchaseUsd(e.target.value)}
+                        className="mt-2"
+                        placeholder="10"
+                        type="number"
+                        min="0"
+                        step="0.01"
+                      />
+                      <div className="mt-1 text-[11px] text-muted-foreground">
+                        Current on-chain: ${currentMinPurchaseUsd.toFixed(2)}
+                      </div>
+                    </div>
+                    <Button
+                      variant="outline"
+                      onClick={() => runAction("Update minimum purchase", adminSetMinPurchase)}
+                      disabled={adminSetMinPurchase.isPending}
+                    >
+                      Update Min Purchase
                     </Button>
                   </div>
                 </TabsContent>

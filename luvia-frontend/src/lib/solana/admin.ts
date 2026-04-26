@@ -161,3 +161,26 @@ export async function withdrawUnsoldTokens(params: {
       .instruction(),
   });
 }
+
+export async function setMinimumPurchaseUsd(params: {
+  admin: PublicKey;
+  walletProvider: SolanaWalletProvider;
+  minPurchaseUsd: number;
+}) {
+  const { admin, walletProvider, minPurchaseUsd } = params;
+  const program = buildProgramForWallet(makeWalletShim(admin));
+  const microUsd = BigInt(Math.floor(minPurchaseUsd * 1_000_000));
+  if (microUsd <= 0n) throw new Error("Minimum purchase must be > 0");
+
+  return sendAdminInstruction({
+    admin,
+    walletProvider,
+    instruction: program.methods
+      .setMinPurchase(new BN(microUsd.toString()))
+      .accountsStrict({
+        admin,
+        presaleConfig: PRESALE_CONFIG_PDA,
+      })
+      .instruction(),
+  });
+}

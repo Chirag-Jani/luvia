@@ -115,6 +115,9 @@ const Buy = () => {
   } | null>(null);
 
   const endDate = useMemo(() => {
+    if (presale?.presaleEndTs) {
+      return new Date(presale.presaleEndTs * 1000);
+    }
     if (PRESALE_END_DATE) {
       const d = new Date(PRESALE_END_DATE);
       if (!Number.isNaN(d.getTime())) return d;
@@ -122,7 +125,7 @@ const Buy = () => {
     const d = new Date();
     d.setDate(d.getDate() + 60);
     return d;
-  }, []);
+  }, [presale?.presaleEndTs]);
 
   const stages = presale?.stages ?? FALLBACK_STAGES;
   const activeStageIndex = presale?.currentStage ?? 0;
@@ -135,6 +138,7 @@ const Buy = () => {
       : null;
 
   const tokenPriceUsd = activeStage?.priceUsd ?? STAGE_PRICES_USD[0];
+  const minimumPurchaseUsd = presale?.minPurchaseUsd ?? MIN_PURCHASE_USD;
 
   const tokensReceived = useMemo(() => {
     const solNum = parseFloat(sol) || 0;
@@ -144,8 +148,8 @@ const Buy = () => {
   const meetsMinimumUsd = useMemo(() => {
     const solNum = parseFloat(sol) || 0;
     if (!solPriceUsd || solNum <= 0) return false;
-    return solNum * solPriceUsd >= MIN_PURCHASE_USD;
-  }, [sol, solPriceUsd]);
+    return solNum * solPriceUsd >= minimumPurchaseUsd;
+  }, [sol, solPriceUsd, minimumPurchaseUsd]);
 
   const usdRaised = presale?.usdRaisedFromTokens ?? 0;
   const pct = Math.min(
@@ -246,8 +250,8 @@ const Buy = () => {
       return;
     }
     const usdValue = solNum * solPriceUsd;
-    if (usdValue < MIN_PURCHASE_USD) {
-      toast.error(`Minimum purchase is $${MIN_PURCHASE_USD.toFixed(2)}.`);
+    if (usdValue < minimumPurchaseUsd) {
+      toast.error(`Minimum purchase is $${minimumPurchaseUsd.toFixed(2)}.`);
       return;
     }
 
@@ -570,7 +574,7 @@ const Buy = () => {
                       ) : paused ? (
                         "Presale Paused"
                       ) : !meetsMinimumUsd ? (
-                        `Min $${MIN_PURCHASE_USD.toFixed(0)} Purchase`
+                        `Min $${minimumPurchaseUsd.toFixed(0)} Purchase`
                       ) : (
                         <>Buy $LUVIA</>
                       )}
@@ -587,7 +591,7 @@ const Buy = () => {
                     Tokens are delivered to your wallet in the same transaction.
                     Price is quoted live via Pyth at the moment of purchase.
                     <br />
-                    Minimum purchase: ${MIN_PURCHASE_USD.toFixed(2)}.
+                    Minimum purchase: ${minimumPurchaseUsd.toFixed(2)}.
                   </p>
 
                   <div className="mt-4 grid grid-cols-3 gap-2">

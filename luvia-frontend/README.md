@@ -9,10 +9,12 @@ Frontend for the LUVIA presale dApp (React + Vite + Solana/Anchor).
 - Wallet connect/disconnect via Reown AppKit (Solana namespace)
 - On-chain presale state reads (`presale_config` PDA)
 - Live SOL/USD quote from Pyth Hermes
-- Buy flow using Anchor `buy_tokens` with fresh Pyth update posting
+- Buy flow using Anchor `buy_tokens` with fresh Pyth update posting and on-chain sale-window checks
 - Admin actions wired to chain: pause, unpause, advance stage, withdraw SOL, withdraw unsold tokens
 - Buy success popup with transaction details + explorer link
 - Hidden `/admin` route with on-chain admin verification and tabbed admin console
+- Countdown is now synced from on-chain `presale_end_ts` when available.
+- Minimum purchase reads from on-chain config and is admin-adjustable from `/admin`.
 
 ### Uses fallback/static values in UI
 
@@ -40,6 +42,7 @@ Use `.env` (or `.env.example` as reference):
   - `presale_config`
   - `treasury`
 - Buy flow may produce a transaction bundle depending on oracle posting payload size; wallet UX is optimized to reduce repeated prompts where adapter support exists.
+- Stage prices now align to current presale plan (`0.01 / 0.015 / 0.02 / 0.025`) with listing display price `$0.10`.
 
 ## Key source files
 

@@ -190,8 +190,15 @@ describe("luvia_presale", () => {
     // Pyth price-update account that matches the SOL/USD feed id.
     const placeholderPyth = Keypair.generate().publicKey;
 
+    const nowTs = Math.floor(Date.now() / 1000);
+
     await program.methods
-      .initialize(admin.publicKey)
+      .initialize(
+        admin.publicKey,
+        new BN(nowTs - 3600),
+        new BN(nowTs + 365 * 24 * 60 * 60),
+        new BN(10_000_000)
+      )
       .accountsStrict({
         initializer: admin.publicKey,
         presaleConfig,

@@ -25,6 +25,12 @@ pub struct PresaleConfig {
     pub treasury_bump: u8,
     /// Reserved for future use / alignment.
     pub _padding: [u8; 4],
+    /// Minimum purchase threshold in micro-USD (admin adjustable).
+    pub min_purchase_micro_usd: u64,
+    /// Presale start timestamp (unix seconds, source of truth).
+    pub presale_start_ts: i64,
+    /// Presale end timestamp (unix seconds, source of truth).
+    pub presale_end_ts: i64,
     /// Total tokens sold across all stages (base units).
     pub total_tokens_sold: u64,
     /// Total SOL taken into the treasury (lamports).
@@ -97,4 +103,10 @@ pub struct UnsoldTokensWithdrawn {
     pub destination: Pubkey,
     pub amount: u64,
     pub vault_remaining: u64,
+}
+
+#[event]
+pub struct MinPurchaseUpdated {
+    pub admin: Pubkey,
+    pub min_purchase_micro_usd: u64,
 }

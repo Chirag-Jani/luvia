@@ -32,4 +32,10 @@ pub enum PresaleError {
     InvalidVault,
     #[msg("Token mint decimals do not match the expected value.")]
     InvalidMintDecimals,
+    #[msg("Presale has not started yet.")]
+    PresaleNotStarted,
+    #[msg("Presale window has ended.")]
+    PresaleWindowClosed,
+    #[msg("Purchase amount is below minimum purchase threshold.")]
+    MinPurchaseNotMet,
 }

@@ -1,5 +1,5 @@
 {
-  "address": "H6DXYanZ9uiDsUqwsXu7GKNH1E1WHdqKoJr9JqqzA8cP",
+  "address": "Fxgt8HY2fgnhef62Sx6HUowLh6uQti6dpe6rJmUV5qGP",
   "metadata": {
     "name": "luvia_presale",
     "version": "0.1.0",
@@ -285,7 +285,8 @@
     {
       "name": "initialize",
       "docs": [
-        "One-time setup. Creates config + treasury PDA + vault ATA, burns hardcoded stage config."
+        "One-time setup. Creates config + treasury PDA + vault ATA, burns hardcoded stage config.",
+        "The transaction signer is the initializer/payer; `initial_admin` can be any pubkey."
       ],
       "discriminator": [
         175,
@@ -299,7 +300,7 @@
       ],
       "accounts": [
         {
-          "name": "admin",
+          "name": "initializer",
           "writable": true,
           "signer": true
         },
@@ -429,7 +430,24 @@
           "address": "11111111111111111111111111111111"
         }
       ],
-      "args": []
+      "args": [
+        {
+          "name": "initial_admin",
+          "type": "pubkey"
+        },
+        {
+          "name": "presale_start_ts",
+          "type": "i64"
+        },
+        {
+          "name": "presale_end_ts",
+          "type": "i64"
+        },
+        {
+          "name": "min_purchase_micro_usd",
+          "type": "u64"
+        }
+      ]
     },
     {
       "name": "pause",
@@ -483,6 +501,64 @@
         }
       ],
       "args": []
+    },
+    {
+      "name": "set_min_purchase",
+      "docs": [
+        "Admin-only minimum purchase update (micro-USD, e.g. $10 = 10_000_000)."
+      ],
+      "discriminator": [
+        78,
+        187,
+        249,
+        250,
+        223,
+        244,
+        237,
+        79
+      ],
+      "accounts": [
+        {
+          "name": "admin",
+          "signer": true,
+          "relations": [
+            "presale_config"
+          ]
+        },
+        {
+          "name": "presale_config",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  114,
+                  101,
+                  115,
+                  97,
+                  108,
+                  101,
+                  95,
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        }
+      ],
+      "args": [
+        {
+          "name": "min_purchase_micro_usd",
+          "type": "u64"
+        }
+      ]
     },
     {
       "name": "unpause",
@@ -837,6 +913,19 @@
   ],
   "events": [
     {
+      "name": "MinPurchaseUpdated",
+      "discriminator": [
+        110,
+        84,
+        171,
+        22,
+        79,
+        66,
+        205,
+        198
+      ]
+    },
+    {
       "name": "PausedChanged",
       "discriminator": [
         12,
@@ -990,9 +1079,40 @@
       "code": 6014,
       "name": "InvalidMintDecimals",
       "msg": "Token mint decimals do not match the expected value."
+    },
+    {
+      "code": 6015,
+      "name": "PresaleNotStarted",
+      "msg": "Presale has not started yet."
+    },
+    {
+      "code": 6016,
+      "name": "PresaleWindowClosed",
+      "msg": "Presale window has ended."
+    },
+    {
+      "code": 6017,
+      "name": "MinPurchaseNotMet",
+      "msg": "Purchase amount is below minimum purchase threshold."
     }
   ],
   "types": [
+    {
+      "name": "MinPurchaseUpdated",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "admin",
+            "type": "pubkey"
+          },
+          {
+            "name": "min_purchase_micro_usd",
+            "type": "u64"
+          }
+        ]
+      }
+    },
     {
       "name": "PausedChanged",
       "type": {
@@ -1084,6 +1204,27 @@
                 4
               ]
             }
+          },
+          {
+            "name": "min_purchase_micro_usd",
+            "docs": [
+              "Minimum purchase threshold in micro-USD (admin adjustable)."
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "presale_start_ts",
+            "docs": [
+              "Presale start timestamp (unix seconds, source of truth)."
+            ],
+            "type": "i64"
+          },
+          {
+            "name": "presale_end_ts",
+            "docs": [
+              "Presale end timestamp (unix seconds, source of truth)."
+            ],
+            "type": "i64"
           },
           {
             "name": "total_tokens_sold",

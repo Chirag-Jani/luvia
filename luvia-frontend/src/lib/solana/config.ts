@@ -20,7 +20,7 @@ export const RPC_ENDPOINT =
 
 export const PROGRAM_ID = new PublicKey(
   envOrUndefined(import.meta.env.VITE_LUVIA_PROGRAM_ID) ??
-    "H6DXYanZ9uiDsUqwsXu7GKNH1E1WHdqKoJr9JqqzA8cP"
+    "Fxgt8HY2fgnhef62Sx6HUowLh6uQti6dpe6rJmUV5qGP"
 );
 
 /**
@@ -45,8 +45,8 @@ export const PYTH_RECEIVER_PROGRAM_ID = new PublicKey(
 );
 
 /** Stage metadata hardcoded in the program (order matters). */
-export const STAGE_PRICES_USD = [0.004, 0.006, 0.009, 0.012] as const;
-export const LISTING_PRICE_USD = 0.018;
+export const STAGE_PRICES_USD = [0.01, 0.015, 0.02, 0.025] as const;
+export const LISTING_PRICE_USD = 0.1;
 
 /** Per-stage allocation (375M LUVIA) — hardcoded in the program. */
 export const PER_STAGE_ALLOCATION_UI = 375_000_000;

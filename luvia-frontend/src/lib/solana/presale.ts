@@ -21,6 +21,9 @@ export interface PresaleState {
   paused: boolean;
   totalTokensSold: bigint;
   totalSolRaised: bigint;
+  minPurchaseUsd: number;
+  presaleStartTs: number;
+  presaleEndTs: number;
   stages: StageState[];
   /** Convenience: the `stages[currentStage]` entry, or `null` if presale ended. */
   activeStage: StageState | null;
@@ -102,6 +105,16 @@ export async function fetchPresaleState(): Promise<PresaleState> {
     ),
     totalSolRaised: BigInt(
       pick(raw, "totalSolRaised", "total_sol_raised").toString()
+    ),
+    minPurchaseUsd:
+      Number(
+        pick(raw, "minPurchaseMicroUsd", "min_purchase_micro_usd").toString()
+      ) / MICRO_USD,
+    presaleStartTs: Number(
+      pick(raw, "presaleStartTs", "presale_start_ts").toString()
+    ),
+    presaleEndTs: Number(
+      pick(raw, "presaleEndTs", "presale_end_ts").toString()
     ),
     stages,
     activeStage,

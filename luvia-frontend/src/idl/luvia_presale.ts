@@ -5,7 +5,7 @@
  * IDL can be found at `target/idl/luvia_presale.json`.
  */
 export type LuviaPresale = {
-  "address": "H6DXYanZ9uiDsUqwsXu7GKNH1E1WHdqKoJr9JqqzA8cP",
+  "address": "Fxgt8HY2fgnhef62Sx6HUowLh6uQti6dpe6rJmUV5qGP",
   "metadata": {
     "name": "luviaPresale",
     "version": "0.1.0",
@@ -291,7 +291,8 @@ export type LuviaPresale = {
     {
       "name": "initialize",
       "docs": [
-        "One-time setup. Creates config + treasury PDA + vault ATA, burns hardcoded stage config."
+        "One-time setup. Creates config + treasury PDA + vault ATA, burns hardcoded stage config.",
+        "The transaction signer is the initializer/payer; `initial_admin` can be any pubkey."
       ],
       "discriminator": [
         175,
@@ -305,7 +306,7 @@ export type LuviaPresale = {
       ],
       "accounts": [
         {
-          "name": "admin",
+          "name": "initializer",
           "writable": true,
           "signer": true
         },
@@ -435,7 +436,24 @@ export type LuviaPresale = {
           "address": "11111111111111111111111111111111"
         }
       ],
-      "args": []
+      "args": [
+        {
+          "name": "initialAdmin",
+          "type": "pubkey"
+        },
+        {
+          "name": "presaleStartTs",
+          "type": "i64"
+        },
+        {
+          "name": "presaleEndTs",
+          "type": "i64"
+        },
+        {
+          "name": "minPurchaseMicroUsd",
+          "type": "u64"
+        }
+      ]
     },
     {
       "name": "pause",
@@ -489,6 +507,64 @@ export type LuviaPresale = {
         }
       ],
       "args": []
+    },
+    {
+      "name": "setMinPurchase",
+      "docs": [
+        "Admin-only minimum purchase update (micro-USD, e.g. $10 = 10_000_000)."
+      ],
+      "discriminator": [
+        78,
+        187,
+        249,
+        250,
+        223,
+        244,
+        237,
+        79
+      ],
+      "accounts": [
+        {
+          "name": "admin",
+          "signer": true,
+          "relations": [
+            "presaleConfig"
+          ]
+        },
+        {
+          "name": "presaleConfig",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  114,
+                  101,
+                  115,
+                  97,
+                  108,
+                  101,
+                  95,
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        }
+      ],
+      "args": [
+        {
+          "name": "minPurchaseMicroUsd",
+          "type": "u64"
+        }
+      ]
     },
     {
       "name": "unpause",
@@ -843,6 +919,19 @@ export type LuviaPresale = {
   ],
   "events": [
     {
+      "name": "minPurchaseUpdated",
+      "discriminator": [
+        110,
+        84,
+        171,
+        22,
+        79,
+        66,
+        205,
+        198
+      ]
+    },
+    {
       "name": "pausedChanged",
       "discriminator": [
         12,
@@ -996,9 +1085,40 @@ export type LuviaPresale = {
       "code": 6014,
       "name": "invalidMintDecimals",
       "msg": "Token mint decimals do not match the expected value."
+    },
+    {
+      "code": 6015,
+      "name": "presaleNotStarted",
+      "msg": "Presale has not started yet."
+    },
+    {
+      "code": 6016,
+      "name": "presaleWindowClosed",
+      "msg": "Presale window has ended."
+    },
+    {
+      "code": 6017,
+      "name": "minPurchaseNotMet",
+      "msg": "Purchase amount is below minimum purchase threshold."
     }
   ],
   "types": [
+    {
+      "name": "minPurchaseUpdated",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "admin",
+            "type": "pubkey"
+          },
+          {
+            "name": "minPurchaseMicroUsd",
+            "type": "u64"
+          }
+        ]
+      }
+    },
     {
       "name": "pausedChanged",
       "type": {
@@ -1090,6 +1210,27 @@ export type LuviaPresale = {
                 4
               ]
             }
+          },
+          {
+            "name": "minPurchaseMicroUsd",
+            "docs": [
+              "Minimum purchase threshold in micro-USD (admin adjustable)."
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "presaleStartTs",
+            "docs": [
+              "Presale start timestamp (unix seconds, source of truth)."
+            ],
+            "type": "i64"
+          },
+          {
+            "name": "presaleEndTs",
+            "docs": [
+              "Presale end timestamp (unix seconds, source of truth)."
+            ],
+            "type": "i64"
           },
           {
             "name": "totalTokensSold",

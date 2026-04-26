@@ -24,7 +24,7 @@ use crate::errors::PresaleError;
 use crate::pyth::{decode_price_update, feed_id_from_hex};
 use crate::state::*;
 
-declare_id!("H6DXYanZ9uiDsUqwsXu7GKNH1E1WHdqKoJr9JqqzA8cP");
+declare_id!("Fxgt8HY2fgnhef62Sx6HUowLh6uQti6dpe6rJmUV5qGP");
 
 #[program]
 pub mod luvia_presale {
@@ -32,11 +32,23 @@ pub mod luvia_presale {
 
     /// One-time setup. Creates config + treasury PDA + vault ATA, burns hardcoded stage config.
     /// The transaction signer is the initializer/payer; `initial_admin` can be any pubkey.
-    pub fn initialize(ctx: Context<Initialize>, initial_admin: Pubkey) -> Result<()> {
+    pub fn initialize(
+        ctx: Context<Initialize>,
+        initial_admin: Pubkey,
+        presale_start_ts: i64,
+        presale_end_ts: i64,
+        min_purchase_micro_usd: u64,
+    ) -> Result<()> {
         require!(
             ctx.accounts.token_mint.decimals == TOKEN_DECIMALS,
             PresaleError::InvalidMintDecimals
         );
+
+        require!(
+            presale_start_ts < presale_end_ts,
+            PresaleError::InvalidAmount
+        );
+        require!(min_purchase_micro_usd > 0, PresaleError::InvalidAmount);
 
         let cfg = &mut ctx.accounts.presale_config;
         cfg.admin = initial_admin;
@@ -49,6 +61,9 @@ pub mod luvia_presale {
         cfg.bump = ctx.bumps.presale_config;
         cfg.treasury_bump = ctx.bumps.treasury;
         cfg._padding = [0; 4];
+        cfg.min_purchase_micro_usd = min_purchase_micro_usd;
+        cfg.presale_start_ts = presale_start_ts;
+        cfg.presale_end_ts = presale_end_ts;
         cfg.total_tokens_sold = 0;
         cfg.total_sol_raised = 0;
 
@@ -86,8 +101,28 @@ pub mod luvia_presale {
             PresaleError::PresaleEnded
         );
 
+        let now = Clock::get()?.unix_timestamp;
+        require!(
+            now >= ctx.accounts.presale_config.presale_start_ts,
+            PresaleError::PresaleNotStarted
+        );
+        require!(
+            now <= ctx.accounts.presale_config.presale_end_ts,
+            PresaleError::PresaleWindowClosed
+        );
+
         // ---- 1. Pull live SOL/USD price from Pyth and normalize to micro-USD (6 decimals).
         let sol_price_micro_usd = load_sol_usd_price_micro(&ctx.accounts.pyth_price_update)?;
+
+        let purchase_micro_usd = (sol_amount as u128)
+            .checked_mul(sol_price_micro_usd)
+            .ok_or(PresaleError::MathOverflow)?
+            .checked_div(DECIMALS_POW as u128)
+            .ok_or(PresaleError::MathOverflow)?;
+        require!(
+            purchase_micro_usd >= ctx.accounts.presale_config.min_purchase_micro_usd as u128,
+            PresaleError::MinPurchaseNotMet
+        );
 
         // ---- 2. Walk stages to figure out how many tokens the SOL buys and how much SOL is
         // actually consumed (the buyer is only charged for what the presale can fulfil).
@@ -342,6 +377,21 @@ pub mod luvia_presale {
     pub fn unpause(ctx: Context<AdminOnly>) -> Result<()> {
         ctx.accounts.presale_config.paused = false;
         emit!(PausedChanged { paused: false });
+        Ok(())
+    }
+
+
+    /// Admin-only minimum purchase update (micro-USD, e.g. $10 = 10_000_000).
+    pub fn set_min_purchase(
+        ctx: Context<AdminOnly>,
+        min_purchase_micro_usd: u64,
+    ) -> Result<()> {
+        require!(min_purchase_micro_usd > 0, PresaleError::InvalidAmount);
+        ctx.accounts.presale_config.min_purchase_micro_usd = min_purchase_micro_usd;
+        emit!(MinPurchaseUpdated {
+            admin: ctx.accounts.admin.key(),
+            min_purchase_micro_usd,
+        });
         Ok(())
     }
 }
