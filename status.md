@@ -1,6 +1,6 @@
 # LUVIA Project Status
 
-Last updated: 2026-04-25
+Last updated: 2026-04-27
 
 ## Overall
 
@@ -15,6 +15,20 @@ Core contract integration is live and wired end-to-end on frontend (devnet-focus
 - on-chain minimum purchase config added and admin-adjustable via `/admin`
 
 Buy flow is functional and confirmed working.
+
+## Platform snapshot (current)
+
+- Token supply: `10,000,000,000` LUVIA (9 decimals)
+- Public sale allocation: `1,500,000,000` LUVIA (15%, 4 stages x 375M)
+- Stage prices:
+  - Stage 1: `$0.01`
+  - Stage 2: `$0.015`
+  - Stage 3: `$0.02`
+  - Stage 4: `$0.025`
+- Listing display price: `$0.10`
+- Buyer delivery model: instant token delivery on successful buy transaction
+- Payment method: SOL only
+- Price source: Pyth SOL/USD pull-oracle (validated on-chain)
 
 ## Live vs static
 
@@ -45,6 +59,7 @@ Buy flow is functional and confirmed working.
 - stage display prices in frontend config: `0.01, 0.015, 0.02, 0.025`
 - minimum purchase default: `$10` (now on-chain configurable by admin)
 - listing display price: `$0.10`
+- deploy/init flow is env-driven from `contracts/.env` (no code edits required for parameter changes)
 
 ## Notes on buy transaction UX
 
@@ -53,22 +68,62 @@ Buy flow is functional and confirmed working.
 - Depending on oracle payload/runtime limits, buy may be built as a transaction bundle rather than a single tx.
 - Frontend uses wallet capabilities to minimize repeated signing prompts where possible.
 
-## Client questions (copy/paste ready)
+## Admin capabilities (live)
 
-1. Can you share the final tokenomics allocation table (all buckets) and the vesting/lock schedule for each?
-2. What is the final stage naming and positioning copy you want shown publicly on the website?
-3. What should be the final listing price messaging and launch assumptions shown in the UI?
-4. What is the exact presale end date/time and timezone, and what is the source of truth for it?
-5. Can you provide the final roadmap milestones and their target dates?
-6. Can you share the final partners list, official logos, and approval to publish each one?
-7. Can you provide the final marketing copy for static landing sections (About, Features, How It Works, Use Cases, FAQ, etc.)?
-8. Please share the production Reown project ID and any wallet policy/restrictions we must enforce.
-9. Which production RPC provider(s) should we use, and what uptime/reliability requirements should we target?
-10. For allocation buckets with vesting, please confirm exact cliff + unlock cadence per bucket (monthly linear, quarterly, etc.).
+- hidden `/admin` route with wallet + on-chain admin verification
+- pause / unpause presale
+- manually advance stage
+- withdraw SOL from treasury PDA (rent-safe)
+- withdraw unsold tokens from vault
+- update minimum purchase USD on-chain
+- stage-wise analytics, vault/treasury visibility, sold/remaining visibility
 
-## Operational next-step checklist
+## End-to-end flow
 
-- confirm client-provided content/parameters above
-- lock production env values
-- run final devnet validation pass with client-approved parameters
-- prepare mainnet rollout checklist (program id, RPC, monitoring, fallback plan)
+### Deployment / initialize
+
+1. deploy program on devnet
+2. run `yarn deploy` in `contracts`
+3. script reads configurables from `contracts/.env`
+4. script can create/reuse mint, mint supply, initialize presale, fund vault
+5. admin can be set independent of deployer (`INITIAL_ADMIN`)
+
+### Buyer flow
+
+1. connect wallet
+2. frontend reads on-chain presale state
+3. user enters SOL amount
+4. frontend fetches fresh Pyth update + builds buy transaction flow
+5. wallet signs and sends
+6. program validates:
+   - sale window started and not ended
+   - not paused
+   - minimum USD amount met
+   - valid + fresh SOL/USD price update account
+7. SOL goes to treasury PDA, LUVIA goes to buyer ATA
+8. stage/state counters update (including auto-advance when full)
+
+### If stages are not fully sold
+
+- admin can keep sale running until end window, or close operationally
+- admin can pause, withdraw unsold vault tokens, and/or withdraw treasury SOL
+- unsold tokens are reclaimable through admin withdraw flow
+
+## Tokenomics + vesting (current decisions)
+
+- Allocation split:
+  - Ecosystem Growth: 30%
+  - Infrastructure Rewards: 25%
+  - Public Sale: 15%
+  - Team: 10%
+  - Treasury: 10%
+  - Partnerships: 5%
+  - Community: 5%
+- Team / Treasury / Partnerships: vest linearly over 24 months (no cliff)
+- Buyer tokens: instant delivery after successful buy
+- Rewards vesting: 4 vesting periods at 12 / 24 / 36 / 48 months
+
+## Remaining (minor)
+
+- optional precision: define exact percentage split across rewards vesting periods (12/24/36/48) if needed for legal/docs automation
+- production infra polish at go-live (final RPC/Reown/env lock + mainnet checklist)

@@ -41,7 +41,7 @@ pub struct PresaleConfig {
 
 #[derive(AnchorSerialize, AnchorDeserialize, Clone, Copy, InitSpace, Default, Debug)]
 pub struct StageInfo {
-    /// Token price in micro-USD (6 decimals): $0.004 => 4_000.
+    /// Token price in micro-USD (6 decimals): $0.01 => 10_000.
     pub price_micro_usd: u64,
     /// Hard cap for this stage in base units (9 decimals).
     pub allocation: u64,

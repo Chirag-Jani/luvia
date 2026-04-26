@@ -1337,7 +1337,7 @@ export type LuviaPresale = {
           {
             "name": "priceMicroUsd",
             "docs": [
-              "Token price in micro-USD (6 decimals): $0.004 => 4_000."
+              "Token price in micro-USD (6 decimals): $0.01 => 10_000."
             ],
             "type": "u64"
           },

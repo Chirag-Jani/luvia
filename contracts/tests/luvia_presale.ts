@@ -276,8 +276,8 @@ describe("luvia_presale", () => {
     expect(cfg.totalSolRaised.toString()).to.not.eq("0");
     expect(treasuryAfter).to.be.greaterThan(treasuryBefore);
 
-    // At stage-1 price $0.004 with SOL ≈ $100–300, 0.1 SOL should buy somewhere
-    // in the range of ~2.5k–7.5k LUVIA. Sanity-check we got at least 100 LUVIA.
+    // At stage-1 price $0.01 with SOL ≈ $100–300, 0.1 SOL should buy somewhere
+    // in the range of ~1k–3k LUVIA. Sanity-check we got at least 100 LUVIA.
     expect(buyerAcct.amount > 100n * DEC).to.eq(true);
 
     // Still in stage 0 after a small buy.

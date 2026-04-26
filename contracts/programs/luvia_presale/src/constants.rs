@@ -14,7 +14,7 @@ pub const NUM_STAGES: usize = 4;
 pub const PER_STAGE_ALLOCATION: u64 = 375_000_000 * DECIMALS_POW;
 
 // Stage prices in micro-USD (6 decimals of precision).
-// $0.004 = 4_000, $0.006 = 6_000, $0.009 = 9_000, $0.012 = 12_000
+// $0.01 = 10_000, $0.015 = 15_000, $0.02 = 20_000, $0.025 = 25_000
 pub const STAGE_PRICES_MICRO_USD: [u64; NUM_STAGES] = [10_000, 15_000, 20_000, 25_000];
 
 // Pyth pull-oracle SOL/USD feed id (same on devnet + mainnet).
