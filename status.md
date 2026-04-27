@@ -61,6 +61,10 @@ Buy flow is functional and confirmed working.
 - stage display prices in frontend config: `0.01, 0.015, 0.02, 0.025`
 - minimum purchase default: `$10` (now on-chain configurable by admin)
 - listing display price: `$0.10`
+- footer contact email: `Info@luvia.exchange`
+- fundraising goal display: `$6,000,000`
+- seeded raised display floor: `$268,000`
+- fallback presale duration (UI only): `40` days when on-chain end timestamp is unavailable
 - deploy/init flow is env-driven from `contracts/.env` (no code edits required for parameter changes)
 
 ## Notes on buy transaction UX
@@ -102,7 +106,7 @@ Buy flow is functional and confirmed working.
    - not paused
    - minimum USD amount met
    - valid + fresh SOL/USD price update account
-7. SOL is routed to the admin-designated treasury path, LUVIA goes to buyer ATA
+7. SOL is routed 100% to the program treasury path controlled by admin withdrawals, and LUVIA goes to buyer ATA
 8. stage/state counters update (including auto-advance when full)
 
 ### If stages are not fully sold
@@ -129,3 +133,28 @@ Buy flow is functional and confirmed working.
 
 - optional precision: define exact percentage split across rewards vesting periods (12/24/36/48) if needed for legal/docs automation
 - production infra polish at go-live (final RPC/Reown/env lock + mainnet checklist)
+
+## Mainnet go-live checklist (what still needs configuring)
+
+1. Mainnet program deployment + finalized program id
+2. Frontend env update for mainnet:
+   - `VITE_SOLANA_CLUSTER=mainnet-beta`
+   - `VITE_SOLANA_RPC_URL=<mainnet provider url>`
+   - `VITE_LUVIA_PROGRAM_ID=<mainnet program id>`
+3. Contracts env update for mainnet initialize/deploy:
+   - `ANCHOR_PROVIDER_URL=<mainnet provider url>`
+   - `ANCHOR_WALLET=<deployer keypair path>`
+   - `INITIAL_ADMIN=<client/admin wallet>`
+   - `PRESALE_START_TS`, `PRESALE_END_TS`, `MIN_PURCHASE_MICRO_USD`
+4. Reown production project id in frontend env (`VITE_REOWN_PROJECT_ID`)
+5. Final mint authority decision:
+   - keep authority (operational flexibility), or
+   - renounce with `RENOUNCE_MINT_AUTHORITY=true` (fixed-supply claim)
+6. One final mainnet dry run:
+   - buy flow
+   - admin pause/unpause/advance
+   - SOL withdraw
+   - unsold token withdraw
+7. Monitoring + rollback prep:
+   - RPC failover plan
+   - tx/error monitoring dashboards

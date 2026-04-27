@@ -5,7 +5,7 @@ Production-ready Solana Anchor program for the LUVIA token public sale.
 - 4-stage bonding-curve presale with hardcoded prices ($0.01 → $0.015 → $0.02 → $0.025)
 - SOL payments, live SOL/USD priced via Pyth pull oracle, tokens delivered instantly
 - Token-2022 (SPL Token Extensions) mint, 9 decimals
-- All SOL custodied in a program-owned treasury PDA (not a wallet) — admin withdraws via signed CPI
+- All SOL custodied in a program-owned treasury PDA (not a wallet) — effectively 100% admin-routable via signed withdraw CPI
 - Admin-only pause, manual stage advance, SOL withdraw, and unsold-token reclaim
 
 ---

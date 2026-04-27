@@ -21,6 +21,7 @@ Frontend for the LUVIA presale dApp (React + Vite + Solana/Anchor).
 - UI ensures at least `$268,000` appears as raised (display floor).
 - Whitepaper link in footer opens `/LUVIA Whitepaper.pdf`.
 - Footer contact email is `Info@luvia.exchange`.
+- "Powering the next generation of AI" cards use randomized images from `public/images` on each load.
 
 ### Uses fallback/static values in UI
 
@@ -50,6 +51,7 @@ Use `.env` (or `.env.example` as reference):
 - Buy flow may produce a transaction bundle depending on oracle posting payload size; wallet UX is optimized to reduce repeated prompts where adapter support exists.
 - Buyer delivery model is instant token delivery after successful purchase (no buyer vesting in current buy flow).
 - Investor flow copy is aligned to: connect wallet -> click buy -> wallet sends tx -> contract settlement.
+- Funds route to the program treasury path and are fully admin-withdrawable via on-chain admin controls.
 
 ## Key source files
 
@@ -79,3 +81,17 @@ Use `.env` (or `.env.example` as reference):
 
 - Optional precision: exact percentage split across rewards vesting periods (12/24/36/48) if legal/docs automation requires strict per-period percentages.
 - Production values when going live: final RPC/Reown IDs and env lock.
+
+## Mainnet configuration checklist
+
+- Set frontend env:
+  - `VITE_SOLANA_CLUSTER=mainnet-beta`
+  - `VITE_SOLANA_RPC_URL=<mainnet rpc>`
+  - `VITE_LUVIA_PROGRAM_ID=<mainnet program id>`
+  - `VITE_REOWN_PROJECT_ID=<production reown id>`
+- Set contracts env:
+  - `ANCHOR_PROVIDER_URL=<mainnet rpc>`
+  - `ANCHOR_WALLET=<deployer keypair path>`
+  - `INITIAL_ADMIN=<mainnet admin wallet>`
+  - `PRESALE_START_TS`, `PRESALE_END_TS`, `MIN_PURCHASE_MICRO_USD`
+- Run a full mainnet smoke pass for buy + admin actions before public launch.
