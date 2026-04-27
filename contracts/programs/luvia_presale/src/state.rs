@@ -5,9 +5,9 @@ use crate::constants::NUM_STAGES;
 #[account]
 #[derive(InitSpace)]
 pub struct PresaleConfig {
-    /// Admin wallet that can advance stages, pause, and withdraw SOL.
+    /// Admin wallet that can advance stages, pause, and manage unsold tokens.
     pub admin: Pubkey,
-    /// PDA that holds purchased SOL (withdrawable only via `withdraw_sol`).
+    /// PDA used in buy-time SOL routing path.
     pub treasury: Pubkey,
     /// LUVIA Token-2022 mint address.
     pub token_mint: Pubkey,
@@ -89,12 +89,6 @@ pub struct StageAdvanced {
 #[event]
 pub struct PausedChanged {
     pub paused: bool,
-}
-
-#[event]
-pub struct SolWithdrawn {
-    pub admin: Pubkey,
-    pub amount: u64,
 }
 
 #[event]

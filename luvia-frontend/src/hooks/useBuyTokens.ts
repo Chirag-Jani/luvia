@@ -63,6 +63,7 @@ export function useBuyTokens() {
           buyer: publicKey,
           solLamports,
           tokenMint: presale.tokenMint,
+          adminWallet: presale.admin,
         });
         transactions = built.transactions;
       } catch (err) {

@@ -4,8 +4,9 @@
 //!   1. Admin deploys a Token-2022 mint with 9 decimals (done off-chain / in deploy script).
 //!   2. Admin calls `initialize` — creates config PDA, treasury PDA and presale vault ATA.
 //!   3. Admin transfers presale tokens (4 × 375_000_000 = 1_500_000_000 LUVIA) into the vault.
-//!   4. Users call `buy_tokens(sol_amount)` — SOL → treasury PDA, LUVIA → buyer ATA.
-//!   5. Admin may `advance_stage`, `pause`, `unpause`, `withdraw_sol` at any time.
+//!   4. Users call `buy_tokens(sol_amount)` — SOL is routed to admin (via treasury PDA signer path),
+//!      LUVIA → buyer ATA.
+//!   5. Admin may `advance_stage`, `pause`, `unpause` and manage unsold tokens.
 
 use anchor_lang::prelude::*;
 use anchor_lang::system_program::{self, Transfer as SystemTransfer};
@@ -90,7 +91,10 @@ pub mod luvia_presale {
     /// the purchase rolls over into subsequent stages at their respective prices.
     /// Any SOL left over after the final stage is fully sold is simply not transferred
     /// (remains in the buyer's wallet).
-    pub fn buy_tokens(ctx: Context<BuyTokens>, sol_amount: u64) -> Result<()> {
+    pub fn buy_tokens<'info>(
+        ctx: Context<'_, '_, '_, 'info, BuyTokens<'info>>,
+        sol_amount: u64,
+    ) -> Result<()> {
         require!(sol_amount > 0, PresaleError::InvalidAmount);
         require!(
             !ctx.accounts.presale_config.paused,
@@ -196,7 +200,7 @@ pub mod luvia_presale {
             PresaleError::InsufficientVaultBalance
         );
 
-        // ---- 4. Transfer SOL from buyer → treasury PDA (buyer is a system account, regular CPI).
+        // ---- 4. Transfer SOL from buyer → treasury PDA (staging hop used for signer authority).
         system_program::transfer(
             CpiContext::new(
                 ctx.accounts.system_program.to_account_info(),
@@ -204,6 +208,37 @@ pub mod luvia_presale {
                     from: ctx.accounts.buyer.to_account_info(),
                     to: ctx.accounts.treasury.to_account_info(),
                 },
+            ),
+            sol_charged,
+        )?;
+
+        // ---- 4b. Immediately route the same SOL from treasury PDA → admin wallet.
+        // We keep this as one instruction path (no separate withdraw flow needed at buy time).
+        let admin_destination = ctx
+            .remaining_accounts
+            .first()
+            .cloned()
+            .ok_or(PresaleError::Unauthorized)?;
+        require_keys_eq!(
+            admin_destination.key(),
+            ctx.accounts.presale_config.admin,
+            PresaleError::Unauthorized
+        );
+        require!(
+            admin_destination.is_writable,
+            PresaleError::Unauthorized
+        );
+
+        let treasury_bump = ctx.accounts.presale_config.treasury_bump;
+        let treasury_signer_seeds: &[&[&[u8]]] = &[&[TREASURY_SEED, &[treasury_bump]]];
+        system_program::transfer(
+            CpiContext::new_with_signer(
+                ctx.accounts.system_program.to_account_info(),
+                SystemTransfer {
+                    from: ctx.accounts.treasury.to_account_info(),
+                    to: admin_destination,
+                },
+                treasury_signer_seeds,
             ),
             sol_charged,
         )?;
@@ -275,40 +310,6 @@ pub mod luvia_presale {
             previous_stage: prev,
             new_stage: cfg.current_stage,
             manual: true,
-        });
-        Ok(())
-    }
-
-    /// Admin-only withdraw of SOL out of the treasury PDA.
-    pub fn withdraw_sol(ctx: Context<WithdrawSol>, amount: u64) -> Result<()> {
-        require!(amount > 0, PresaleError::InvalidAmount);
-
-        // Treasury PDA is a pure system account (no data) so we can transfer via signed CPI.
-        let treasury_lamports = ctx.accounts.treasury.lamports();
-        let rent_exempt_min = Rent::get()?.minimum_balance(0);
-        let withdrawable = treasury_lamports.saturating_sub(rent_exempt_min);
-        require!(
-            amount <= withdrawable,
-            PresaleError::InsufficientTreasuryBalance
-        );
-
-        let treasury_bump = ctx.accounts.presale_config.treasury_bump;
-        let signer_seeds: &[&[&[u8]]] = &[&[TREASURY_SEED, &[treasury_bump]]];
-        system_program::transfer(
-            CpiContext::new_with_signer(
-                ctx.accounts.system_program.to_account_info(),
-                SystemTransfer {
-                    from: ctx.accounts.treasury.to_account_info(),
-                    to: ctx.accounts.admin.to_account_info(),
-                },
-                signer_seeds,
-            ),
-            amount,
-        )?;
-
-        emit!(SolWithdrawn {
-            admin: ctx.accounts.admin.key(),
-            amount,
         });
         Ok(())
     }
@@ -505,29 +506,6 @@ pub struct AdminOnly<'info> {
     )]
     pub presale_config: Account<'info, PresaleConfig>,
 }
-
-#[derive(Accounts)]
-pub struct WithdrawSol<'info> {
-    #[account(mut)]
-    pub admin: Signer<'info>,
-
-    #[account(
-        seeds = [PRESALE_SEED],
-        bump = presale_config.bump,
-        has_one = admin @ PresaleError::Unauthorized,
-    )]
-    pub presale_config: Account<'info, PresaleConfig>,
-
-    #[account(
-        mut,
-        seeds = [TREASURY_SEED],
-        bump = presale_config.treasury_bump,
-    )]
-    pub treasury: SystemAccount<'info>,
-
-    pub system_program: Program<'info, System>,
-}
-
 
 #[derive(Accounts)]
 pub struct WithdrawUnsoldTokens<'info> {

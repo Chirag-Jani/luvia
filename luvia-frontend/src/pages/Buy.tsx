@@ -17,7 +17,6 @@ import {
   ShieldCheck,
   Zap,
 } from "lucide-react";
-import { LAMPORTS_PER_SOL } from "@solana/web3.js";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -41,7 +40,6 @@ import {
   advancePresaleStage,
   pausePresale,
   unpausePresale,
-  withdrawPresaleSol,
   withdrawUnsoldTokens,
 } from "@/lib/solana/admin";
 import { connection } from "@/lib/solana/connection";
@@ -85,26 +83,14 @@ const Buy = () => {
     queryFn: async () => {
       if (!publicKey) return 0;
       const lamports = await connection.getBalance(publicKey, "confirmed");
-      return lamports / LAMPORTS_PER_SOL;
+      return lamports / 1_000_000_000;
     },
     refetchInterval: 12_000,
     staleTime: 8_000,
     refetchOnWindowFocus: true,
   });
-  const { data: treasurySolBalance } = useQuery<number>({
-    queryKey: ["treasury-sol-balance", presale?.treasury.toBase58()],
-    enabled: Boolean(presale?.treasury),
-    queryFn: async () => {
-      if (!presale?.treasury) return 0;
-      const lamports = await connection.getBalance(presale.treasury, "confirmed");
-      return lamports / LAMPORTS_PER_SOL;
-    },
-    refetchInterval: 12_000,
-    staleTime: 8_000,
-  });
 
   const [sol, setSol] = useState("0.5");
-  const [withdrawSolAmount, setWithdrawSolAmount] = useState("0.1");
   const [withdrawTokenAmount, setWithdrawTokenAmount] = useState("0");
   const [successInfo, setSuccessInfo] = useState<{
     signature: string;
@@ -168,7 +154,6 @@ const Buy = () => {
   const refreshPresale = () => {
     void queryClient.invalidateQueries({ queryKey: ["presale-state"] });
     void queryClient.invalidateQueries({ queryKey: ["wallet-sol-balance"] });
-    void queryClient.invalidateQueries({ queryKey: ["treasury-sol-balance"] });
   };
 
   const adminPause = useMutation({
@@ -194,20 +179,6 @@ const Buy = () => {
       if (!publicKey || !isAdmin) throw new Error("Admin wallet required.");
       if (!walletProvider) throw new Error("Connect wallet first.");
       return advancePresaleStage({ admin: publicKey, walletProvider });
-    },
-    onSuccess: () => refreshPresale(),
-  });
-
-  const adminWithdrawSol = useMutation({
-    mutationFn: async () => {
-      if (!publicKey || !isAdmin) throw new Error("Admin wallet required.");
-      if (!walletProvider) throw new Error("Connect wallet first.");
-      const solNum = parseFloat(withdrawSolAmount);
-      if (!Number.isFinite(solNum) || solNum <= 0) {
-        throw new Error("Enter valid SOL amount.");
-      }
-      const lamports = BigInt(Math.floor(solNum * LAMPORTS_PER_SOL));
-      return withdrawPresaleSol({ admin: publicKey, walletProvider, lamports });
     },
     onSuccess: () => refreshPresale(),
   });
@@ -620,14 +591,6 @@ const Buy = () => {
                       <div className="text-[11px] uppercase tracking-widest text-muted-foreground">
                         Admin Controls
                       </div>
-                      <div className="text-[11px] text-muted-foreground">
-                        Treasury:{" "}
-                        {typeof treasurySolBalance === "number"
-                          ? `${treasurySolBalance.toLocaleString("en-US", {
-                              maximumFractionDigits: 4,
-                            })} SOL`
-                          : "—"}
-                      </div>
                       <div className="grid grid-cols-2 gap-2">
                         <Button
                           variant="outline"
@@ -654,27 +617,6 @@ const Buy = () => {
                         </Button>
                       </div>
                       <div className="space-y-2">
-                        <div className="flex gap-2">
-                          <Input
-                            value={withdrawSolAmount}
-                            onChange={(e) => setWithdrawSolAmount(e.target.value)}
-                            className="h-9"
-                            placeholder="SOL amount"
-                            type="number"
-                            min="0"
-                            step="0.01"
-                          />
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() =>
-                              runAdminAction("Withdraw SOL", adminWithdrawSol)
-                            }
-                            disabled={adminWithdrawSol.isPending}
-                          >
-                            Withdraw SOL
-                          </Button>
-                        </div>
                         <div className="flex gap-2">
                           <Input
                             value={withdrawTokenAmount}

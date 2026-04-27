@@ -5,8 +5,8 @@ Production-ready Solana Anchor program for the LUVIA token public sale.
 - 4-stage bonding-curve presale with hardcoded prices ($0.01 → $0.015 → $0.02 → $0.025)
 - SOL payments, live SOL/USD priced via Pyth pull oracle, tokens delivered instantly
 - Token-2022 (SPL Token Extensions) mint, 9 decimals
-- All SOL custodied in a program-owned treasury PDA (not a wallet) — effectively 100% admin-routable via signed withdraw CPI
-- Admin-only pause, manual stage advance, SOL withdraw, and unsold-token reclaim
+- SOL routed to admin in buy execution path (through treasury signer hop), LUVIA delivered instantly
+- Admin-only pause, manual stage advance, and unsold-token reclaim
 
 ---
 
@@ -88,7 +88,7 @@ The mint is created externally in the deploy script with the deployer/initialize
 
 ## Scope note (vesting/tokenomics)
 
-- This presale program enforces sale mechanics (stages, pricing, buy validation, admin controls, withdrawals).
+- This presale program enforces sale mechanics (stages, pricing, buy validation, admin controls).
 - Vesting policy is currently handled as platform/business logic and content (not enforced by this presale contract).
 - Current policy snapshot:
   - Team / Treasury / Partnerships vest linearly over 24 months (no cliff).
@@ -118,7 +118,7 @@ User pays SOL, receives LUVIA. Behavior:
 3. Normalizes price to micro-USD per SOL.
 4. Walks stages from `current_stage`, filling each with the portion of SOL it can absorb at that stage's price, up to the stage's remaining allocation. Rolls over to the next stage automatically.
 5. Any SOL left after all stages are sold out is **not** transferred (buyer keeps it).
-6. SOL → `treasury` PDA; LUVIA → buyer's ATA (init-if-needed).
+6. SOL is routed to admin in the same buy execution path; LUVIA → buyer's ATA (init-if-needed).
 7. Updates `stages[*].sold`, auto-advances `current_stage` past any newly-filled stages, updates cumulative counters.
 
 **Signer:** buyer
@@ -144,13 +144,6 @@ Admin-only update of the minimum purchase threshold used by `buy_tokens`. Value 
 
 **Signer:** admin
 **Emits:** `MinPurchaseUpdated { admin, min_purchase_micro_usd }`
-
-### `withdraw_sol(amount: u64)`
-
-Signed system-program CPI from the `treasury` PDA to the admin wallet. Always leaves the rent-exempt minimum behind so the treasury account stays alive for future deposits.
-
-**Signer:** admin
-**Emits:** `SolWithdrawn { admin, amount }`
 
 ### `withdraw_unsold_tokens(amount: u64)`
 
@@ -178,7 +171,6 @@ Admin reclaims LUVIA from the vault — either mid-presale (after pausing / skip
 | `NegativePrice` | Pyth reported `price <= 0` |
 | `InsufficientVaultBalance` | Vault doesn't have enough tokens |
 | `AlreadyFinalStage` | `advance_stage` called at stage 4 |
-| `InsufficientTreasuryBalance` | `withdraw_sol` amount exceeds `treasury - rent-exempt` |
 | `InvalidMint` / `InvalidVault` | Passed-in account doesn't match the one in config |
 | `InvalidMintDecimals` | Mint decimals ≠ 9 |
 | `PresaleNotStarted` | Buy attempted before configured start timestamp |
@@ -222,7 +214,6 @@ Presale is now live.
 • advance_stage                 — cut a stage short (skipped tokens stay in vault)
 • pause / unpause               — emergency stop
 • set_min_purchase(micro_usd)   — update minimum buy threshold
-• withdraw_sol(amount)          — drain part/all of treasury to admin wallet
 • withdraw_unsold_tokens(amt)   — reclaim vault tokens (pass u64::MAX to sweep)
 ```
 
@@ -231,7 +222,7 @@ Presale is now live.
 ```
 • Stage 4 sells out OR admin decides the sale is over
 • Admin calls withdraw_unsold_tokens(u64::MAX) to reclaim any leftovers
-• Admin calls withdraw_sol(...) to drain remaining SOL
+• SOL proceeds are already routed to admin during buys
 • Reclaimed LUVIA + SOL is used for:
     – DEX liquidity pool (e.g. Raydium / Orca)
     – CEX listings
@@ -250,7 +241,6 @@ TokensPurchased    { buyer, sol_spent, tokens_received, stage_at_purchase, stage
 StageAdvanced      { previous_stage, new_stage, manual }
 PausedChanged      { paused }
 MinPurchaseUpdated { admin, min_purchase_micro_usd }
-SolWithdrawn       { admin, amount }
 UnsoldTokensWithdrawn { admin, destination, amount, vault_remaining }
 ```
 
@@ -347,7 +337,6 @@ Test coverage:
 - `buy_tokens` — live Pyth pricing; validates buyer balance, stage sold counter, treasury delta
 - `advance_stage` — admin manual bump + non-admin rejection
 - `pause` / `unpause` — buys blocked while paused
-- `withdraw_sol` — admin withdrawal + non-admin rejection
 - `withdraw_unsold_tokens` — partial withdraw + `u64::MAX` sweep + non-admin rejection
 
 ---

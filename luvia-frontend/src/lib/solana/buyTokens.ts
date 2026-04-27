@@ -42,8 +42,9 @@ export async function buildBuyTokensTransactions(params: {
   buyer: PublicKey;
   solLamports: bigint;
   tokenMint: PublicKey;
+  adminWallet: PublicKey;
 }): Promise<BuyTxBundle> {
-  const { buyer, solLamports, tokenMint } = params;
+  const { buyer, solLamports, tokenMint, adminWallet } = params;
 
   try {
     if (!(buyer instanceof PublicKey)) {
@@ -115,6 +116,7 @@ export async function buildBuyTokensTransactions(params: {
           associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
           systemProgram: SystemProgram.programId,
         })
+        .remainingAccounts([{ pubkey: adminWallet, isSigner: false, isWritable: true }])
         .instruction();
       return [{ instruction: ix, signers: [] }];
     });

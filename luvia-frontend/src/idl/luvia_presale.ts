@@ -617,89 +617,6 @@ export type LuviaPresale = {
       "args": []
     },
     {
-      "name": "withdrawSol",
-      "docs": [
-        "Admin-only withdraw of SOL out of the treasury PDA."
-      ],
-      "discriminator": [
-        145,
-        131,
-        74,
-        136,
-        65,
-        137,
-        42,
-        38
-      ],
-      "accounts": [
-        {
-          "name": "admin",
-          "writable": true,
-          "signer": true,
-          "relations": [
-            "presaleConfig"
-          ]
-        },
-        {
-          "name": "presaleConfig",
-          "pda": {
-            "seeds": [
-              {
-                "kind": "const",
-                "value": [
-                  112,
-                  114,
-                  101,
-                  115,
-                  97,
-                  108,
-                  101,
-                  95,
-                  99,
-                  111,
-                  110,
-                  102,
-                  105,
-                  103
-                ]
-              }
-            ]
-          }
-        },
-        {
-          "name": "treasury",
-          "writable": true,
-          "pda": {
-            "seeds": [
-              {
-                "kind": "const",
-                "value": [
-                  116,
-                  114,
-                  101,
-                  97,
-                  115,
-                  117,
-                  114,
-                  121
-                ]
-              }
-            ]
-          }
-        },
-        {
-          "name": "systemProgram",
-          "address": "11111111111111111111111111111111"
-        }
-      ],
-      "args": [
-        {
-          "name": "amount",
-          "type": "u64"
-        }
-      ]
-    },
-    {
       "name": "withdrawUnsoldTokens",
       "docs": [
         "Admin-only recovery of LUVIA that remains in the vault — either because a stage was",
@@ -958,19 +875,6 @@ export type LuviaPresale = {
       ]
     },
     {
-      "name": "solWithdrawn",
-      "discriminator": [
-        145,
-        249,
-        69,
-        48,
-        206,
-        86,
-        91,
-        66
-      ]
-    },
-    {
       "name": "stageAdvanced",
       "discriminator": [
         238,
@@ -1067,11 +971,6 @@ export type LuviaPresale = {
       "msg": "Already at the final stage; cannot advance further."
     },
     {
-      "code": 6011,
-      "name": "insufficientTreasuryBalance",
-      "msg": "Treasury does not have enough withdrawable SOL."
-    },
-    {
       "code": 6012,
       "name": "invalidMint",
       "msg": "Token mint account does not match the one registered in config."
@@ -1139,14 +1038,14 @@ export type LuviaPresale = {
           {
             "name": "admin",
             "docs": [
-              "Admin wallet that can advance stages, pause, and withdraw SOL."
+              "Admin wallet that can advance stages, pause, and manage unsold tokens."
             ],
             "type": "pubkey"
           },
           {
             "name": "treasury",
             "docs": [
-              "PDA that holds purchased SOL (withdrawable only via `withdraw_sol`)."
+              "PDA used in buy-time SOL routing path."
             ],
             "type": "pubkey"
           },
@@ -1289,22 +1188,6 @@ export type LuviaPresale = {
           {
             "name": "pythPriceUpdate",
             "type": "pubkey"
-          }
-        ]
-      }
-    },
-    {
-      "name": "solWithdrawn",
-      "type": {
-        "kind": "struct",
-        "fields": [
-          {
-            "name": "admin",
-            "type": "pubkey"
-          },
-          {
-            "name": "amount",
-            "type": "u64"
           }
         ]
       }

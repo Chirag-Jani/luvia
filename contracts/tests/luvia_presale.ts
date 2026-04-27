@@ -102,6 +102,9 @@ describe("luvia_presale", () => {
             associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
             systemProgram: SystemProgram.programId,
           })
+          .remainingAccounts([
+            { pubkey: admin.publicKey, isSigner: false, isWritable: true },
+          ])
           .instruction();
         return [{ instruction: ix, signers: [buyer] }];
       }
@@ -223,10 +226,10 @@ describe("luvia_presale", () => {
     expect(cfg.totalSolRaised.toString()).to.eq("0");
     expect(cfg.stages.length).to.eq(4);
 
-    expect(cfg.stages[0].priceMicroUsd.toNumber()).to.eq(4_000);
-    expect(cfg.stages[1].priceMicroUsd.toNumber()).to.eq(6_000);
-    expect(cfg.stages[2].priceMicroUsd.toNumber()).to.eq(9_000);
-    expect(cfg.stages[3].priceMicroUsd.toNumber()).to.eq(12_000);
+    expect(cfg.stages[0].priceMicroUsd.toNumber()).to.eq(10_000);
+    expect(cfg.stages[1].priceMicroUsd.toNumber()).to.eq(15_000);
+    expect(cfg.stages[2].priceMicroUsd.toNumber()).to.eq(20_000);
+    expect(cfg.stages[3].priceMicroUsd.toNumber()).to.eq(25_000);
     for (const s of cfg.stages) {
       expect(s.allocation.toString()).to.eq(PER_STAGE.toString());
       expect(s.sold.toString()).to.eq("0");
@@ -258,7 +261,7 @@ describe("luvia_presale", () => {
   it("buys tokens with SOL via live Pyth price", async () => {
     const solAmount = new BN(0.1 * LAMPORTS_PER_SOL); // 0.1 SOL
 
-    const treasuryBefore = await connection.getBalance(treasury);
+    const adminBefore = await connection.getBalance(admin.publicKey);
 
     await postPriceAndBuy(solAmount);
 
@@ -270,11 +273,15 @@ describe("luvia_presale", () => {
     );
     const cfg = await program.account.presaleConfig.fetch(presaleConfig);
     const treasuryAfter = await connection.getBalance(treasury);
+    const adminAfter = await connection.getBalance(admin.publicKey);
 
     expect(buyerAcct.amount > 0n).to.eq(true);
     expect(cfg.totalTokensSold.toString()).to.not.eq("0");
     expect(cfg.totalSolRaised.toString()).to.not.eq("0");
-    expect(treasuryAfter).to.be.greaterThan(treasuryBefore);
+    // Buy flow now forwards SOL from treasury PDA to admin in the same tx.
+    expect(adminAfter).to.be.greaterThan(adminBefore);
+    // Treasury should not accumulate purchase proceeds (only rent cushion remains).
+    expect(treasuryAfter).to.be.lessThan(0.05 * LAMPORTS_PER_SOL);
 
     // At stage-1 price $0.01 with SOL ≈ $100–300, 0.1 SOL should buy somewhere
     // in the range of ~1k–3k LUVIA. Sanity-check we got at least 100 LUVIA.
@@ -342,54 +349,9 @@ describe("luvia_presale", () => {
     expect(cfg.paused).to.eq(false);
   });
 
-  it("admin withdraws SOL from the treasury", async () => {
+  it("keeps treasury near rent floor after buys (direct admin routing)", async () => {
     const treasuryBalance = await connection.getBalance(treasury);
-    expect(treasuryBalance).to.be.greaterThan(0);
-
-    const rentExemptMin = await connection.getMinimumBalanceForRentExemption(0);
-    const withdrawable = treasuryBalance - rentExemptMin;
-    expect(withdrawable).to.be.greaterThan(0);
-
-    const withdrawAmount = new BN(Math.floor(withdrawable / 2));
-    const adminBefore = await connection.getBalance(admin.publicKey);
-
-    await program.methods
-      .withdrawSol(withdrawAmount)
-      .accountsStrict({
-        admin: admin.publicKey,
-        presaleConfig,
-        treasury,
-        systemProgram: SystemProgram.programId,
-      })
-      .rpc();
-
-    const adminAfter = await connection.getBalance(admin.publicKey);
-    const treasuryAfter = await connection.getBalance(treasury);
-
-    expect(treasuryAfter).to.eq(treasuryBalance - withdrawAmount.toNumber());
-    // Admin balance increases by withdrawal minus tx fee; net must be positive.
-    expect(adminAfter).to.be.greaterThan(
-      adminBefore + withdrawAmount.toNumber() - 0.01 * LAMPORTS_PER_SOL
-    );
-  });
-
-  it("rejects withdraw_sol from a non-admin", async () => {
-    let threw = false;
-    try {
-      await program.methods
-        .withdrawSol(new BN(1_000))
-        .accountsStrict({
-          admin: buyer.publicKey,
-          presaleConfig,
-          treasury,
-          systemProgram: SystemProgram.programId,
-        })
-        .signers([buyer])
-        .rpc();
-    } catch (_err) {
-      threw = true;
-    }
-    expect(threw).to.eq(true);
+    expect(treasuryBalance).to.be.lessThan(0.05 * LAMPORTS_PER_SOL);
   });
 
   it("admin reclaims unsold tokens from the vault", async () => {

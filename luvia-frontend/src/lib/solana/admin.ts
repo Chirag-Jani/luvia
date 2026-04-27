@@ -4,7 +4,7 @@ import { ASSOCIATED_TOKEN_PROGRAM_ID, TOKEN_2022_PROGRAM_ID, getAssociatedTokenA
 import { PublicKey, SystemProgram, Transaction, TransactionInstruction, VersionedTransaction } from "@solana/web3.js";
 
 import { connection } from "./connection";
-import { PRESALE_CONFIG_PDA, TREASURY_PDA } from "./pdas";
+import { PRESALE_CONFIG_PDA } from "./pdas";
 import { buildProgramForWallet } from "./program";
 
 type SupportedTx = Transaction | VersionedTransaction;
@@ -93,28 +93,6 @@ export async function advancePresaleStage(params: {
       .accountsStrict({
         admin,
         presaleConfig: PRESALE_CONFIG_PDA,
-      })
-      .instruction(),
-  });
-}
-
-export async function withdrawPresaleSol(params: {
-  admin: PublicKey;
-  walletProvider: SolanaWalletProvider;
-  lamports: bigint;
-}) {
-  const { admin, walletProvider, lamports } = params;
-  const program = buildProgramForWallet(makeWalletShim(admin));
-  return sendAdminInstruction({
-    admin,
-    walletProvider,
-    instruction: program.methods
-      .withdrawSol(new BN(lamports.toString()))
-      .accountsStrict({
-        admin,
-        presaleConfig: PRESALE_CONFIG_PDA,
-        treasury: TREASURY_PDA,
-        systemProgram: SystemProgram.programId,
       })
       .instruction(),
   });

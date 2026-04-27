@@ -10,7 +10,7 @@ Frontend for the LUVIA presale dApp (React + Vite + Solana/Anchor).
 - On-chain presale state reads (`presale_config` PDA)
 - Live SOL/USD quote from Pyth Hermes
 - Buy flow using Anchor `buy_tokens` with fresh Pyth update posting and on-chain sale-window checks
-- Admin actions wired to chain: pause, unpause, advance stage, withdraw SOL, withdraw unsold tokens
+- Admin actions wired to chain: pause, unpause, advance stage, withdraw unsold tokens, update minimum purchase
 - Buy success popup with transaction details + explorer link
 - Hidden `/admin` route with on-chain admin verification and tabbed admin console
 - Countdown is now synced from on-chain `presale_end_ts` when available.
@@ -51,7 +51,7 @@ Use `.env` (or `.env.example` as reference):
 - Buy flow may produce a transaction bundle depending on oracle posting payload size; wallet UX is optimized to reduce repeated prompts where adapter support exists.
 - Buyer delivery model is instant token delivery after successful purchase (no buyer vesting in current buy flow).
 - Investor flow copy is aligned to: connect wallet -> click buy -> wallet sends tx -> contract settlement.
-- Funds route to the program treasury path and are fully admin-withdrawable via on-chain admin controls.
+- Buy flow routes SOL to the on-chain admin wallet in the same transaction path.
 
 ## Key source files
 

@@ -9,7 +9,6 @@ import {
   ShieldCheck,
   Wallet,
 } from "lucide-react";
-import { LAMPORTS_PER_SOL } from "@solana/web3.js";
 import { toast } from "sonner";
 
 import { ConnectWalletButton } from "@/components/luvia/ConnectWalletButton";
@@ -22,7 +21,6 @@ import {
   advancePresaleStage,
   pausePresale,
   unpausePresale,
-  withdrawPresaleSol,
   withdrawUnsoldTokens,
   setMinimumPurchaseUsd,
 } from "@/lib/solana/admin";
@@ -44,7 +42,6 @@ const Admin = () => {
   const { data: presale, isLoading } = usePresaleState();
   const queryClient = useQueryClient();
 
-  const [withdrawSolAmount, setWithdrawSolAmount] = useState("0.1");
   const [withdrawTokenAmount, setWithdrawTokenAmount] = useState("0");
   const [minPurchaseUsd, setMinPurchaseUsd] = useState("10");
 
@@ -64,12 +61,6 @@ const Admin = () => {
     staleTime: 8_000,
   });
 
-  const { data: treasuryRentExempt } = useQuery<number>({
-    queryKey: ["treasury-rent-exempt"],
-    queryFn: async () => connection.getMinimumBalanceForRentExemption(0),
-    staleTime: 60_000,
-  });
-
   const { data: tokenVaultUiBalance } = useQuery<number>({
     queryKey: ["token-vault-ui-balance", presale?.tokenVault.toBase58()],
     enabled: Boolean(presale?.tokenVault),
@@ -85,17 +76,7 @@ const Admin = () => {
     staleTime: 8_000,
   });
 
-  const treasurySol = useMemo(
-    () => Number(treasuryLamports ?? 0n) / LAMPORTS_PER_SOL,
-    [treasuryLamports]
-  );
-
-  const withdrawableSol = useMemo(() => {
-    const lamports = treasuryLamports ?? 0n;
-    const rent = BigInt(treasuryRentExempt ?? 0);
-    const free = lamports > rent ? lamports - rent : 0n;
-    return Number(free) / LAMPORTS_PER_SOL;
-  }, [treasuryLamports, treasuryRentExempt]);
+  const treasurySol = useMemo(() => Number(treasuryLamports ?? 0n) / 1_000_000_000, [treasuryLamports]);
 
   const totalSoldUi = useMemo(() => {
     if (!presale) return 0;
@@ -148,20 +129,6 @@ const Admin = () => {
       if (!publicKey || !isAdmin) throw new Error("Admin wallet required.");
       if (!walletProvider) throw new Error("Connect wallet first.");
       return advancePresaleStage({ admin: publicKey, walletProvider });
-    },
-    onSuccess: () => refresh(),
-  });
-
-  const adminWithdrawSol = useMutation({
-    mutationFn: async () => {
-      if (!publicKey || !isAdmin) throw new Error("Admin wallet required.");
-      if (!walletProvider) throw new Error("Connect wallet first.");
-      const solNum = parseFloat(withdrawSolAmount);
-      if (!Number.isFinite(solNum) || solNum <= 0) {
-        throw new Error("Enter valid SOL amount.");
-      }
-      const lamports = BigInt(Math.floor(solNum * LAMPORTS_PER_SOL));
-      return withdrawPresaleSol({ admin: publicKey, walletProvider, lamports });
     },
     onSuccess: () => refresh(),
   });
@@ -315,24 +282,13 @@ const Admin = () => {
 
         {isAdmin && presale && (
           <>
-            <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
               <div className="glass-card p-4">
                 <div className="flex items-center gap-2 text-muted-foreground text-xs uppercase tracking-widest">
                   <Wallet className="w-4 h-4" /> Treasury Total
                 </div>
                 <div className="mt-2 font-bebas text-3xl tracking-wide">
                   {formatUi(treasurySol, 4)} SOL
-                </div>
-              </div>
-              <div className="glass-card p-4">
-                <div className="flex items-center gap-2 text-muted-foreground text-xs uppercase tracking-widest">
-                  <Wallet className="w-4 h-4" /> Withdrawable SOL
-                </div>
-                <div className="mt-2 font-bebas text-3xl tracking-wide">
-                  {formatUi(withdrawableSol, 4)} SOL
-                </div>
-                <div className="text-[11px] text-muted-foreground mt-1">
-                  Excludes rent reserve.
                 </div>
               </div>
               <div className="glass-card p-4">
@@ -411,7 +367,6 @@ const Admin = () => {
                         adminPause.isPending ||
                         adminUnpause.isPending ||
                         adminAdvanceStage.isPending ||
-                        adminWithdrawSol.isPending ||
                         adminWithdrawUnsold.isPending ||
                         adminSetMinPurchase.isPending
                       }
@@ -449,33 +404,6 @@ const Admin = () => {
                 </TabsContent>
 
                 <TabsContent value="withdrawals" className="mt-4 space-y-4">
-                  <div className="grid sm:grid-cols-[1fr_auto] gap-3 items-end">
-                    <div>
-                      <label className="text-xs uppercase tracking-widest text-muted-foreground">
-                        Withdraw SOL
-                      </label>
-                      <Input
-                        value={withdrawSolAmount}
-                        onChange={(e) => setWithdrawSolAmount(e.target.value)}
-                        className="mt-2"
-                        placeholder="SOL amount"
-                        type="number"
-                        min="0"
-                        step="0.01"
-                      />
-                      <div className="mt-1 text-[11px] text-muted-foreground">
-                        Available: {formatUi(withdrawableSol, 4)} SOL
-                      </div>
-                    </div>
-                    <Button
-                      variant="outline"
-                      onClick={() => runAction("Withdraw SOL", adminWithdrawSol)}
-                      disabled={adminWithdrawSol.isPending}
-                    >
-                      Withdraw SOL
-                    </Button>
-                  </div>
-
                   <div className="grid sm:grid-cols-[1fr_auto] gap-3 items-end">
                     <div>
                       <label className="text-xs uppercase tracking-widest text-muted-foreground">

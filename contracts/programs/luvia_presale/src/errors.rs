@@ -24,8 +24,6 @@ pub enum PresaleError {
     InsufficientVaultBalance,
     #[msg("Already at the final stage; cannot advance further.")]
     AlreadyFinalStage,
-    #[msg("Treasury does not have enough withdrawable SOL.")]
-    InsufficientTreasuryBalance,
     #[msg("Token mint account does not match the one registered in config.")]
     InvalidMint,
     #[msg("Token vault account does not match the one registered in config.")]

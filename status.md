@@ -40,8 +40,8 @@ Buy flow is functional and confirmed working.
 - `presale_config` PDA reads (stage, sold, paused, totals, mint, treasury)
 - SOL/USD feed consumption from Pyth Hermes
 - `buy_tokens` transaction path from frontend
-- admin instruction paths: pause, unpause, advance stage, withdraw SOL, withdraw unsold tokens
-- wallet + treasury balance reads
+- admin instruction paths: pause, unpause, advance stage, withdraw unsold tokens, set minimum purchase
+- wallet + on-chain presale/vault balance reads
 
 ### Static or fallback in frontend
 
@@ -79,7 +79,6 @@ Buy flow is functional and confirmed working.
 - hidden `/admin` route with wallet + on-chain admin verification
 - pause / unpause presale
 - manually advance stage
-- withdraw SOL from treasury PDA (rent-safe)
 - withdraw unsold tokens from vault
 - update minimum purchase USD on-chain
 - stage-wise analytics, vault/treasury visibility, sold/remaining visibility
@@ -106,13 +105,13 @@ Buy flow is functional and confirmed working.
    - not paused
    - minimum USD amount met
    - valid + fresh SOL/USD price update account
-7. SOL is routed 100% to the program treasury path controlled by admin withdrawals, and LUVIA goes to buyer ATA
+7. SOL is routed to the on-chain admin wallet in the same buy transaction path, and LUVIA goes to buyer ATA
 8. stage/state counters update (including auto-advance when full)
 
 ### If stages are not fully sold
 
 - admin can keep sale running until end window, or close operationally
-- admin can pause, withdraw unsold vault tokens, and/or withdraw treasury SOL
+- admin can pause, and withdraw unsold vault tokens when needed
 - unsold tokens are reclaimable through admin withdraw flow
 
 ## Tokenomics + vesting (current decisions)
@@ -153,7 +152,6 @@ Buy flow is functional and confirmed working.
 6. One final mainnet dry run:
    - buy flow
    - admin pause/unpause/advance
-   - SOL withdraw
    - unsold token withdraw
 7. Monitoring + rollback prep:
    - RPC failover plan
