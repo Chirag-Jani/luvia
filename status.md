@@ -26,6 +26,8 @@ Buy flow is functional and confirmed working.
   - Stage 3: `$0.02`
   - Stage 4: `$0.025`
 - Listing display price: `$0.10`
+- Fundraising target (display): `$6,000,000`
+- Seeded raised shown in UI (display floor): `$268,000`
 - Buyer delivery model: instant token delivery on successful buy transaction
 - Payment method: SOL only
 - Price source: Pyth SOL/USD pull-oracle (validated on-chain)
@@ -44,7 +46,7 @@ Buy flow is functional and confirmed working.
 ### Static or fallback in frontend
 
 - fallback stage display values when chain state is unavailable
-- optional fallback countdown (`now + 60 days`) when `VITE_PRESALE_END_DATE` is unset
+- optional fallback countdown (`now + 40 days`) when `VITE_PRESALE_END_DATE` is unset
 - stage notes/labels in UI are static copy
 - listing price card text is static display value
 - marketing sections are static content (About, Features, HowItWorks, Participants, UseCases, Partners, FAQ, etc.)
@@ -100,7 +102,7 @@ Buy flow is functional and confirmed working.
    - not paused
    - minimum USD amount met
    - valid + fresh SOL/USD price update account
-7. SOL goes to treasury PDA, LUVIA goes to buyer ATA
+7. SOL is routed to the admin-designated treasury path, LUVIA goes to buyer ATA
 8. stage/state counters update (including auto-advance when full)
 
 ### If stages are not fully sold

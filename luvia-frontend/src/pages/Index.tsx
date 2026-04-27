@@ -14,7 +14,7 @@ import { UseCases } from "@/components/luvia/UseCases";
 import { Partners } from "@/components/luvia/Partners";
 import { FAQ } from "@/components/luvia/FAQ";
 import { Footer } from "@/components/luvia/Footer";
-import { PRESALE_END_DATE } from "@/lib/solana/config";
+import { PRESALE_END_DATE, PRESALE_FALLBACK_DAYS } from "@/lib/solana/config";
 import { usePresaleState } from "@/hooks/usePresaleState";
 
 const Index = () => {
@@ -31,7 +31,7 @@ const Index = () => {
       }
     }
     const fallback = new Date();
-    fallback.setDate(fallback.getDate() + 60);
+    fallback.setDate(fallback.getDate() + PRESALE_FALLBACK_DAYS);
     return fallback;
   }, [presale?.presaleEndTs]);
 

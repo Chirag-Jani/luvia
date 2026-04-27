@@ -81,6 +81,18 @@ The mint is created externally in the deploy script with the deployer/initialize
 - Pyth update posting + `buy_tokens` execution is integrated and functioning.
 - Transaction count can vary by payload/runtime constraints; UX is optimized to reduce repeated wallet prompts where adapter APIs allow batch signing.
 - `presale_config.pyth_price_update` is informational; runtime accepts any valid fresh account for the configured SOL/USD feed id.
+- Stage pricing is aligned to `0.01 / 0.015 / 0.02 / 0.025` with listing display target `$0.10`.
+- Buyer delivery mode is instant token transfer on successful `buy_tokens`.
+
+---
+
+## Scope note (vesting/tokenomics)
+
+- This presale program enforces sale mechanics (stages, pricing, buy validation, admin controls, withdrawals).
+- Vesting policy is currently handled as platform/business logic and content (not enforced by this presale contract).
+- Current policy snapshot:
+  - Team / Treasury / Partnerships vest linearly over 24 months (no cliff).
+  - Rewards vest in 4 periods: 12 / 24 / 36 / 48 months.
 
 ---
 

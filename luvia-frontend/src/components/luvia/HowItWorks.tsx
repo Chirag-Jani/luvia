@@ -3,33 +3,27 @@ import { Reveal } from "./Reveal";
 const steps = [
   {
     n: "01",
-    title: "Request",
-    desc: "Developer submits workload demand through the LUVIA portal or API.",
-    lane: "Input",
+    title: "Connect Wallet",
+    desc: "Investor connects a supported wallet (for example Phantom or other supported wallets).",
+    lane: "Investor",
   },
   {
     n: "02",
-    title: "Allocate",
-    desc: "Allocation engine routes compute to the most efficient available nodes.",
-    lane: "Routing",
+    title: "Click Buy",
+    desc: "Investor chooses the SOL amount and clicks Buy to start the purchase flow.",
+    lane: "Action",
   },
   {
     n: "03",
-    title: "Pay",
-    desc: "Execution payment is locked and settled in $LUVIA with deterministic finality.",
-    lane: "Settlement",
+    title: "Wallet Sends Transaction",
+    desc: "The wallet signs and sends the transaction to the presale smart contract.",
+    lane: "Wallet",
   },
   {
     n: "04",
-    title: "Distribute",
-    desc: "Rewards stream to infrastructure providers by verified contribution.",
-    lane: "Rewards",
-  },
-  {
-    n: "05",
-    title: "Stake",
-    desc: "Stakers secure the network and accrue proportional protocol yield.",
-    lane: "Security",
+    title: "Contract Executes",
+    desc: "Contract receives funds, calculates token amount, sends tokens to investor, and routes 100% funds to the admin-designated treasury wallet path.",
+    lane: "On-Chain",
   },
 ];
 
@@ -44,7 +38,7 @@ export const HowItWorks = () => (
         </Reveal>
         <Reveal delay={0.08}>
           <p className="mt-3 text-sm sm:text-base text-muted-foreground">
-            A deterministic 5-step lifecycle for AI compute, payment finality, and reward distribution.
+            Simple investor purchase flow from wallet connection to on-chain settlement.
           </p>
         </Reveal>
       </div>
@@ -54,7 +48,7 @@ export const HowItWorks = () => (
           <div className="rounded-3xl border border-primary/20 bg-[linear-gradient(180deg,hsl(240_25%_9%_/_0.88),hsl(240_24%_7%_/_0.82))] backdrop-blur-xl overflow-hidden">
             <div className="h-1.5 bg-gradient-to-r from-primary/80 via-accent/75 to-primary/80" />
 
-            <div className="grid grid-cols-5 gap-0 px-4 sm:px-7 py-4 border-b border-border/60 text-[10px] uppercase tracking-[0.2em] text-foreground/55">
+            <div className="grid grid-cols-4 gap-0 px-4 sm:px-7 py-4 border-b border-border/60 text-[10px] uppercase tracking-[0.2em] text-foreground/55">
               {steps.map((s) => (
                 <div key={`head-${s.n}`} className="text-center">
                   {s.n}
@@ -94,7 +88,7 @@ export const HowItWorks = () => (
 
         <Reveal delay={0.12}>
           <div className="mt-4 text-center text-xs sm:text-sm text-muted-foreground">
-            One protocol pipeline. Five deterministic stages.
+            One investor flow. Four deterministic steps.
           </div>
         </Reveal>
       </div>

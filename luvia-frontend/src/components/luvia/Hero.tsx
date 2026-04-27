@@ -7,7 +7,9 @@ import { Reveal } from "./Reveal";
 import { usePresaleState } from "@/hooks/usePresaleState";
 import {
   BASE_UNIT_DIVISOR,
+  FUNDRAISING_GOAL_USD,
   PER_STAGE_ALLOCATION_UI,
+  SEEDED_RAISED_USD,
   STAGE_PRICES_USD,
 } from "@/lib/solana/config";
 
@@ -17,13 +19,10 @@ interface Props {
 
 export const Hero = ({ endDate }: Props) => {
   const { data: presale } = usePresaleState();
-  const raised = Math.floor(presale?.usdRaisedFromTokens ?? 0);
-  const goal = Math.floor(
-    STAGE_PRICES_USD.reduce(
-      (acc, price) => acc + price * PER_STAGE_ALLOCATION_UI,
-      0
-    )
+  const raised = Math.floor(
+    Math.max(SEEDED_RAISED_USD, presale?.usdRaisedFromTokens ?? 0)
   );
+  const goal = FUNDRAISING_GOAL_USD;
   const pct = (raised / goal) * 100;
   const activeStageIndex = presale?.currentStage ?? 0;
   const activeStage = presale?.activeStage;

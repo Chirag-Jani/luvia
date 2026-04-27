@@ -1,6 +1,11 @@
-import { useRef } from "react";
-import { motion, useScroll, useTransform, type MotionValue } from "framer-motion";
-import { Brain, Zap, Rocket, Factory, type LucideIcon } from "lucide-react";
+import {
+  motion,
+  useScroll,
+  useTransform,
+  type MotionValue,
+} from "framer-motion";
+import { Brain, Factory, Rocket, Zap, type LucideIcon } from "lucide-react";
+import { useMemo, useRef } from "react";
 
 import { Reveal } from "./Reveal";
 
@@ -47,10 +52,12 @@ function UseCaseStackCard({
   it,
   index,
   progress,
+  imageSrc,
 }: {
   it: UseCaseItem;
   index: number;
   progress: MotionValue<number>;
+  imageSrc: string;
 }) {
   const reverse = index % 2 === 1;
   const inStart = 0.08 + index * 0.15;
@@ -59,8 +66,16 @@ function UseCaseStackCard({
 
   const y = useTransform(progress, [inStart, inEnd], [72, 0]);
   const opacity = useTransform(progress, [inStart, inEnd], [0.35, 1]);
-  const scale = useTransform(progress, [inStart, inEnd, settleEnd], [0.95, 1, 0.985]);
-  const filter = useTransform(progress, [inStart, inEnd], ["blur(6px)", "blur(0px)"]);
+  const scale = useTransform(
+    progress,
+    [inStart, inEnd, settleEnd],
+    [0.95, 1, 0.985],
+  );
+  const filter = useTransform(
+    progress,
+    [inStart, inEnd],
+    ["blur(6px)", "blur(0px)"],
+  );
 
   const Icon = it.icon;
 
@@ -95,14 +110,13 @@ function UseCaseStackCard({
         </div>
 
         <div className={reverse ? "lg:order-1" : "lg:order-2"}>
-          <div className={`relative h-[180px] sm:h-[220px] rounded-2xl overflow-hidden bg-gradient-to-br ${it.accent}`}>
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_25%_20%,rgba(255,255,255,0.35),transparent_40%)]" />
-            <div className="absolute left-0 right-0 bottom-[22%] h-2 bg-white/45 blur-[1px]" />
-            <div className="absolute left-0 right-0 bottom-[22%] h-7 border-y border-white/20 bg-white/10 backdrop-blur-sm" />
+          <div
+            className={`relative h-[180px] sm:h-[220px] rounded-2xl overflow-hidden bg-gradient-to-br ${it.accent}`}
+          >
             <img
-              src="/luvia_logo.png"
-              alt="$LUVIA"
-              className="absolute right-[10%] top-[16%] w-[110px] sm:w-[130px] h-[110px] sm:h-[130px] object-contain drop-shadow-[0_14px_16px_rgba(0,0,0,0.4)]"
+              src={imageSrc}
+              alt={it.title}
+              className="absolute inset-0 w-full h-full object-cover"
               loading="lazy"
             />
           </div>
@@ -114,6 +128,21 @@ function UseCaseStackCard({
 
 export const UseCases = () => {
   const stackRef = useRef<HTMLDivElement | null>(null);
+  const randomImageSet = useMemo(() => {
+    const imagePool = Array.from(
+      { length: 9 },
+      (_, idx) => `/images/${idx + 1}.png`,
+    );
+    const shuffled = [...imagePool];
+    for (let i = shuffled.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      const temp = shuffled[i];
+      shuffled[i] = shuffled[j];
+      shuffled[j] = temp;
+    }
+    return shuffled.slice(0, items.length);
+  }, []);
+
   const { scrollYProgress } = useScroll({
     target: stackRef,
     offset: ["start 85%", "end 20%"],
@@ -125,7 +154,8 @@ export const UseCases = () => {
         <div className="max-w-5xl mx-auto">
           <Reveal>
             <h2 className="font-display font-bold text-3xl sm:text-4xl lg:text-5xl leading-tight max-w-2xl">
-              Powering the next generation of <span className="text-gradient-violet">AI</span>
+              Powering the next generation of{" "}
+              <span className="text-gradient-violet">AI</span>
             </h2>
           </Reveal>
           <Reveal delay={0.08}>
@@ -136,7 +166,13 @@ export const UseCases = () => {
 
           <div ref={stackRef} className="mt-10 pb-20">
             {items.map((it, i) => (
-              <UseCaseStackCard key={it.title} it={it} index={i} progress={scrollYProgress} />
+              <UseCaseStackCard
+                key={it.title}
+                it={it}
+                index={i}
+                progress={scrollYProgress}
+                imageSrc={randomImageSet[i] ?? "/images/1.png"}
+              />
             ))}
           </div>
         </div>

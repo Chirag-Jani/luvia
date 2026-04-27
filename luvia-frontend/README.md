@@ -15,11 +15,17 @@ Frontend for the LUVIA presale dApp (React + Vite + Solana/Anchor).
 - Hidden `/admin` route with on-chain admin verification and tabbed admin console
 - Countdown is now synced from on-chain `presale_end_ts` when available.
 - Minimum purchase reads from on-chain config and is admin-adjustable from `/admin`.
+- Stage prices are aligned to current plan: `0.01 / 0.015 / 0.02 / 0.025`.
+- Listing display price is set to `$0.10`.
+- Fundraising goal display is `$6,000,000`.
+- UI ensures at least `$268,000` appears as raised (display floor).
+- Whitepaper link in footer opens `/LUVIA Whitepaper.pdf`.
+- Footer contact email is `Info@luvia.exchange`.
 
 ### Uses fallback/static values in UI
 
 - Stage fallback array when chain state is unavailable
-- Presale countdown fallback (`now + 60 days`) when `VITE_PRESALE_END_DATE` is unset
+- Presale countdown fallback (`now + 40 days`) when `VITE_PRESALE_END_DATE` is unset
 - Landing page marketing sections are mostly static copy/content
 - Tokenomics display cards are static marketing values
 
@@ -42,7 +48,8 @@ Use `.env` (or `.env.example` as reference):
   - `presale_config`
   - `treasury`
 - Buy flow may produce a transaction bundle depending on oracle posting payload size; wallet UX is optimized to reduce repeated prompts where adapter support exists.
-- Stage prices now align to current presale plan (`0.01 / 0.015 / 0.02 / 0.025`) with listing display price `$0.10`.
+- Buyer delivery model is instant token delivery after successful purchase (no buyer vesting in current buy flow).
+- Investor flow copy is aligned to: connect wallet -> click buy -> wallet sends tx -> contract settlement.
 
 ## Key source files
 
@@ -54,9 +61,21 @@ Use `.env` (or `.env.example` as reference):
 - `src/lib/solana/admin.ts`
 - `src/lib/solana/config.ts`
 
-## Client inputs still needed
+## Tokenomics + vesting snapshot (platform-level)
 
-- Final tokenomics allocations and vesting schedule
-- Final roadmap/partner/content assets for landing sections
-- Final presale end date and listing messaging
-- Final production wallet/RPC/project IDs
+- Allocation split:
+  - Ecosystem Growth: 30%
+  - Infrastructure Rewards: 25%
+  - Public Sale: 15%
+  - Team: 10%
+  - Treasury: 10%
+  - Partnerships: 5%
+  - Community: 5%
+- Team / Treasury / Partnerships: linear vesting over 24 months (no cliff).
+- Rewards vesting: four periods at 12 / 24 / 36 / 48 months.
+- Buyer presale purchases: instant delivery.
+
+## Remaining (minor)
+
+- Optional precision: exact percentage split across rewards vesting periods (12/24/36/48) if legal/docs automation requires strict per-period percentages.
+- Production values when going live: final RPC/Reown IDs and env lock.

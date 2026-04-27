@@ -47,10 +47,13 @@ import {
 import { connection } from "@/lib/solana/connection";
 import {
   CLUSTER,
+  FUNDRAISING_GOAL_USD,
   LISTING_PRICE_USD,
   MIN_PURCHASE_USD,
   PER_STAGE_ALLOCATION_UI,
+  PRESALE_FALLBACK_DAYS,
   PRESALE_END_DATE,
+  SEEDED_RAISED_USD,
   STAGE_PRICES_USD,
 } from "@/lib/solana/config";
 
@@ -64,11 +67,8 @@ const FALLBACK_STAGES = STAGE_PRICES_USD.map((price, i) => ({
   remaining: BigInt(PER_STAGE_ALLOCATION_UI) * BigInt(BASE_UNIT_DIVISOR),
 }));
 
-/** Total USD a fully-sold presale would raise — used as the progress denominator. */
-const TOTAL_PRESALE_USD_GOAL = STAGE_PRICES_USD.reduce(
-  (acc, p) => acc + p * PER_STAGE_ALLOCATION_UI,
-  0
-);
+/** Display goal for progress card. */
+const TOTAL_PRESALE_USD_GOAL = FUNDRAISING_GOAL_USD;
 
 const formatNumber = (n: number, opts?: Intl.NumberFormatOptions) =>
   n.toLocaleString("en-US", { maximumFractionDigits: 0, ...opts });
@@ -124,7 +124,7 @@ const Buy = () => {
       if (!Number.isNaN(d.getTime())) return d;
     }
     const d = new Date();
-    d.setDate(d.getDate() + 60);
+    d.setDate(d.getDate() + PRESALE_FALLBACK_DAYS);
     return d;
   }, [presale?.presaleEndTs]);
 
@@ -152,7 +152,7 @@ const Buy = () => {
     return solNum * solPriceUsd >= minimumPurchaseUsd;
   }, [sol, solPriceUsd, minimumPurchaseUsd]);
 
-  const usdRaised = presale?.usdRaisedFromTokens ?? 0;
+  const usdRaised = Math.max(SEEDED_RAISED_USD, presale?.usdRaisedFromTokens ?? 0);
   const pct = Math.min(
     100,
     (usdRaised / TOTAL_PRESALE_USD_GOAL) * 100

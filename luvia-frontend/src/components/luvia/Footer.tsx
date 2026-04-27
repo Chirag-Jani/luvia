@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { BookOpen, Send, Twitter } from "lucide-react";
+import { CONTACT_EMAIL } from "@/lib/solana/config";
 
 export const Footer = () => (
   <footer className="pt-20 pb-10 border-t border-border/60 relative">
@@ -14,6 +15,12 @@ export const Footer = () => (
           <p className="mt-4 text-muted-foreground max-w-sm">
             The infrastructure token for the AI compute economy.
           </p>
+          <a
+            href={`mailto:${CONTACT_EMAIL}`}
+            className="mt-3 inline-block text-sm text-foreground/80 hover:text-primary transition-colors"
+          >
+            {CONTACT_EMAIL}
+          </a>
           <div className="mt-6 flex gap-3">
             {[Twitter, Send, BookOpen].map((Icon, i) => (
               <a
