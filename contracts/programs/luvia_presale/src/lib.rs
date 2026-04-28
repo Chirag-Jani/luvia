@@ -25,7 +25,7 @@ use crate::errors::PresaleError;
 use crate::pyth::{decode_price_update, feed_id_from_hex};
 use crate::state::*;
 
-declare_id!("Fxgt8HY2fgnhef62Sx6HUowLh6uQti6dpe6rJmUV5qGP");
+declare_id!("Di5NocJPGyEvqTRcXK3P8CrgjgUeD8F3ZNTSfepWB3KF");
 
 #[program]
 pub mod luvia_presale {

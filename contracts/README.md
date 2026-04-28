@@ -12,13 +12,13 @@ Production-ready Solana Anchor program for the LUVIA token public sale.
 
 ## Token specification
 
-| Field | Value |
-|---|---|
-| Name | LUVIA |
-| Standard | SPL Token-2022 |
-| Decimals | 9 |
-| Total supply | 10,000,000,000 LUVIA |
-| Presale allocation | 1,500,000,000 LUVIA (15% — 4 × 375M) |
+| Field                  | Value                                                                                                      |
+| ---------------------- | ---------------------------------------------------------------------------------------------------------- |
+| Name                   | LUVIA                                                                                                      |
+| Standard               | SPL Token-2022                                                                                             |
+| Decimals               | 9                                                                                                          |
+| Total supply           | 10,000,000,000 LUVIA                                                                                       |
+| Presale allocation     | 1,500,000,000 LUVIA (15% — 4 × 375M)                                                                       |
 | Non-presale allocation | 8,500,000,000 LUVIA (85% — deployer/initializer wallet by default in script; can be distributed as needed) |
 
 The mint is created externally in the deploy script with the deployer/initializer as mint authority. Presale admin is set independently via `initialize(initial_admin)`. You can permanently renounce mint authority (`RENOUNCE_MINT_AUTHORITY=true yarn deploy`) so supply is forever fixed at 10B.
@@ -27,12 +27,12 @@ The mint is created externally in the deploy script with the deployer/initialize
 
 ## Presale stages
 
-| Stage | Price (USD) | Allocation | Cumulative |
-|---|---|---|---|
-| 1 | $0.01 | 375,000,000 | 375,000,000 |
-| 2 | $0.015 | 375,000,000 | 750,000,000 |
-| 3 | $0.02 | 375,000,000 | 1,125,000,000 |
-| 4 | $0.025 | 375,000,000 | 1,500,000,000 |
+| Stage | Price (USD) | Allocation  | Cumulative    |
+| ----- | ----------- | ----------- | ------------- |
+| 1     | $0.01       | 375,000,000 | 375,000,000   |
+| 2     | $0.015      | 375,000,000 | 750,000,000   |
+| 3     | $0.02       | 375,000,000 | 1,125,000,000 |
+| 4     | $0.025      | 375,000,000 | 1,500,000,000 |
 
 **Auto-advance:** when a stage sells its full allocation, the program increments `current_stage` in the same transaction. A single large buy can straddle multiple stages at their respective prices.
 
@@ -45,23 +45,23 @@ The mint is created externally in the deploy script with the deployer/initialize
 ### Program
 
 - Crate: `programs/luvia_presale`
-- Default program ID: `Fxgt8HY2fgnhef62Sx6HUowLh6uQti6dpe6rJmUV5qGP`
+- Default program ID: `Di5NocJPGyEvqTRcXK3P8CrgjgUeD8F3ZNTSfepWB3KF`
 - Framework: Anchor 0.31.1
 
 ### PDAs
 
-| PDA | Seeds | Purpose |
-|---|---|---|
-| `presale_config` | `[b"presale_config"]` | Program state (admin, mint, vault, stages, flags) |
-| `treasury` | `[b"treasury"]` | System-owned account that accumulates purchase SOL |
+| PDA              | Seeds                 | Purpose                                            |
+| ---------------- | --------------------- | -------------------------------------------------- |
+| `presale_config` | `[b"presale_config"]` | Program state (admin, mint, vault, stages, flags)  |
+| `treasury`       | `[b"treasury"]`       | System-owned account that accumulates purchase SOL |
 
 ### Token accounts
 
-| Account | Owner | Purpose |
-|---|---|---|
-| `token_vault` | `presale_config` PDA (ATA) | Holds presale tokens; source of all `buy_tokens` transfers |
-| `buyer_token_account` | Buyer (ATA) | Auto-created on first buy if absent |
-| `admin_token_account` | Admin (ATA) | Destination for `withdraw_unsold_tokens` |
+| Account               | Owner                      | Purpose                                                    |
+| --------------------- | -------------------------- | ---------------------------------------------------------- |
+| `token_vault`         | `presale_config` PDA (ATA) | Holds presale tokens; source of all `buy_tokens` transfers |
+| `buyer_token_account` | Buyer (ATA)                | Auto-created on first buy if absent                        |
+| `admin_token_account` | Admin (ATA)                | Destination for `withdraw_unsold_tokens`                   |
 
 ### Pyth oracle
 
@@ -73,7 +73,6 @@ The mint is created externally in the deploy script with the deployer/initialize
 > **Why we vendor the Pyth reader.** The Rust `pyth-solana-receiver-sdk` crate versions that match Anchor 0.31.1 either pull in `solana-program 4.x` (incompatible with Anchor's `2.3.x`) or pull in crates requiring Rust edition 2024 (not supported by the Solana BPF toolchain). We ship a ~120-line self-contained `PriceUpdateV2` byte-parser in [`programs/luvia_presale/src/pyth.rs`](programs/luvia_presale/src/pyth.rs) instead. The on-chain layout has been stable since the pull oracle launched.
 
 ---
-
 
 ## Frontend integration status (Apr 2026)
 
@@ -158,24 +157,24 @@ Admin reclaims LUVIA from the vault — either mid-presale (after pausing / skip
 
 ## Errors
 
-| Code | Meaning |
-|---|---|
-| `PresalePaused` | Buys blocked by admin pause |
-| `StageSoldOut` | (reserved — all path-through checks use `PresaleEnded` / stage walk) |
-| `InsufficientSol` | SOL amount too small to buy any whole token base unit |
-| `PresaleEnded` | All 4 stages fully sold / advanced past |
-| `InvalidAmount` | `amount == 0` |
-| `Unauthorized` | Non-admin attempted an admin instruction |
-| `MathOverflow` | u128 arithmetic overflowed |
-| `InvalidPriceFeed` | Pyth account wrong owner / wrong discriminator / wrong feed id / stale |
-| `NegativePrice` | Pyth reported `price <= 0` |
-| `InsufficientVaultBalance` | Vault doesn't have enough tokens |
-| `AlreadyFinalStage` | `advance_stage` called at stage 4 |
-| `InvalidMint` / `InvalidVault` | Passed-in account doesn't match the one in config |
-| `InvalidMintDecimals` | Mint decimals ≠ 9 |
-| `PresaleNotStarted` | Buy attempted before configured start timestamp |
-| `PresaleWindowClosed` | Buy attempted after configured end timestamp |
-| `MinPurchaseNotMet` | Buy amount below configured minimum purchase |
+| Code                           | Meaning                                                                |
+| ------------------------------ | ---------------------------------------------------------------------- |
+| `PresalePaused`                | Buys blocked by admin pause                                            |
+| `StageSoldOut`                 | (reserved — all path-through checks use `PresaleEnded` / stage walk)   |
+| `InsufficientSol`              | SOL amount too small to buy any whole token base unit                  |
+| `PresaleEnded`                 | All 4 stages fully sold / advanced past                                |
+| `InvalidAmount`                | `amount == 0`                                                          |
+| `Unauthorized`                 | Non-admin attempted an admin instruction                               |
+| `MathOverflow`                 | u128 arithmetic overflowed                                             |
+| `InvalidPriceFeed`             | Pyth account wrong owner / wrong discriminator / wrong feed id / stale |
+| `NegativePrice`                | Pyth reported `price <= 0`                                             |
+| `InsufficientVaultBalance`     | Vault doesn't have enough tokens                                       |
+| `AlreadyFinalStage`            | `advance_stage` called at stage 4                                      |
+| `InvalidMint` / `InvalidVault` | Passed-in account doesn't match the one in config                      |
+| `InvalidMintDecimals`          | Mint decimals ≠ 9                                                      |
+| `PresaleNotStarted`            | Buy attempted before configured start timestamp                        |
+| `PresaleWindowClosed`          | Buy attempted after configured end timestamp                           |
+| `MinPurchaseNotMet`            | Buy amount below configured minimum purchase                           |
 
 ---
 
@@ -307,7 +306,7 @@ yarn deploy
 RENOUNCE_MINT_AUTHORITY=true yarn deploy
 ```
 
-The first `anchor deploy` keeps the program id pinned in `Anchor.toml` (`Fxgt8HY2fgnhef62Sx6HUowLh6uQti6dpe6rJmUV5qGP`). To use a fresh id (e.g. for mainnet), generate a new keypair:
+The first `anchor deploy` keeps the program id pinned in `Anchor.toml` (`Di5NocJPGyEvqTRcXK3P8CrgjgUeD8F3ZNTSfepWB3KF`). To use a fresh id (e.g. for mainnet), generate a new keypair:
 
 ```bash
 solana-keygen new -o target/deploy/luvia_presale-keypair.json
@@ -363,7 +362,9 @@ await builder.addPriceConsumerInstructions(async (getPriceUpdateAccount) => {
   const priceUpdate = getPriceUpdateAccount(SOL_USD_FEED);
   const ix = await program.methods
     .buyTokens(new BN(solLamports))
-    .accountsStrict({ /* ...see migrations/deploy.ts for the full list... */ })
+    .accountsStrict({
+      /* ...see migrations/deploy.ts for the full list... */
+    })
     .instruction();
   return [{ instruction: ix, signers: [] }];
 });

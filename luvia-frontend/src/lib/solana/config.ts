@@ -20,7 +20,7 @@ export const RPC_ENDPOINT =
 
 export const PROGRAM_ID = new PublicKey(
   envOrUndefined(import.meta.env.VITE_LUVIA_PROGRAM_ID) ??
-    "Fxgt8HY2fgnhef62Sx6HUowLh6uQti6dpe6rJmUV5qGP"
+    "Di5NocJPGyEvqTRcXK3P8CrgjgUeD8F3ZNTSfepWB3KF",
 );
 
 /**
@@ -41,7 +41,7 @@ export const BASE_UNIT_DIVISOR = 1_000_000_000;
 
 /** Pyth receiver program id (same on devnet + mainnet). */
 export const PYTH_RECEIVER_PROGRAM_ID = new PublicKey(
-  "rec5EKMGg6MxZYaMdyBfgwp4d5rB9T1VQH5pJv5LtFJ"
+  "rec5EKMGg6MxZYaMdyBfgwp4d5rB9T1VQH5pJv5LtFJ",
 );
 
 /** Stage metadata hardcoded in the program (order matters). */
@@ -61,5 +61,5 @@ export const MIN_PURCHASE_USD = 10;
  * Accepts any value parseable by `new Date(...)` (ISO 8601 recommended).
  */
 export const PRESALE_END_DATE = envOrUndefined(
-  import.meta.env.VITE_PRESALE_END_DATE
+  import.meta.env.VITE_PRESALE_END_DATE,
 );
