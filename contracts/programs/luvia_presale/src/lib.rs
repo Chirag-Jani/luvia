@@ -25,7 +25,7 @@ use crate::errors::PresaleError;
 use crate::pyth::{decode_price_update, feed_id_from_hex};
 use crate::state::*;
 
-declare_id!("9zR6MgpFTv29tqmWpZs23JbgiB1cmWVMcsPY7aH4x17E");
+declare_id!("77KZHoBYhWBfGFPwVYFdFc6j1FdUx6QNZnquj8JHn6cy");
 
 #[program]
 pub mod luvia_presale {
@@ -224,10 +224,7 @@ pub mod luvia_presale {
             ctx.accounts.presale_config.admin,
             PresaleError::Unauthorized
         );
-        require!(
-            admin_destination.is_writable,
-            PresaleError::Unauthorized
-        );
+        require!(admin_destination.is_writable, PresaleError::Unauthorized);
 
         let treasury_bump = ctx.accounts.presale_config.treasury_bump;
         let treasury_signer_seeds: &[&[&[u8]]] = &[&[TREASURY_SEED, &[treasury_bump]]];
@@ -322,10 +319,7 @@ pub mod luvia_presale {
     /// call this while a stage is still actively selling, subsequent `buy_tokens` calls may
     /// fail with `InsufficientVaultBalance` until admin re-funds the vault. The typical safe
     /// pattern mid-presale is: `pause → withdraw_unsold_tokens → unpause` (or re-fund).
-    pub fn withdraw_unsold_tokens(
-        ctx: Context<WithdrawUnsoldTokens>,
-        amount: u64,
-    ) -> Result<()> {
+    pub fn withdraw_unsold_tokens(ctx: Context<WithdrawUnsoldTokens>, amount: u64) -> Result<()> {
         require!(amount > 0, PresaleError::InvalidAmount);
 
         let vault_balance = ctx.accounts.token_vault.amount;
@@ -381,12 +375,8 @@ pub mod luvia_presale {
         Ok(())
     }
 
-
     /// Admin-only minimum purchase update (micro-USD, e.g. $10 = 10_000_000).
-    pub fn set_min_purchase(
-        ctx: Context<AdminOnly>,
-        min_purchase_micro_usd: u64,
-    ) -> Result<()> {
+    pub fn set_min_purchase(ctx: Context<AdminOnly>, min_purchase_micro_usd: u64) -> Result<()> {
         require!(min_purchase_micro_usd > 0, PresaleError::InvalidAmount);
         ctx.accounts.presale_config.min_purchase_micro_usd = min_purchase_micro_usd;
         emit!(MinPurchaseUpdated {
@@ -462,7 +452,6 @@ pub struct Initialize<'info> {
     pub system_program: Program<'info, System>,
 }
 
-
 #[derive(Accounts)]
 pub struct BuyTokens<'info> {
     #[account(mut)]
@@ -511,7 +500,6 @@ pub struct BuyTokens<'info> {
     pub associated_token_program: Program<'info, AssociatedToken>,
     pub system_program: Program<'info, System>,
 }
-
 
 #[derive(Accounts)]
 pub struct AdminOnly<'info> {
@@ -565,7 +553,6 @@ pub struct WithdrawUnsoldTokens<'info> {
     pub system_program: Program<'info, System>,
 }
 
-
 // -----------------------------------------------------------------------------
 // Helpers
 // -----------------------------------------------------------------------------
@@ -582,10 +569,7 @@ fn load_sol_usd_price_micro(price_update: &UncheckedAccount) -> Result<u128> {
     );
 
     let now = Clock::get()?.unix_timestamp;
-    require!(
-        now >= decoded.publish_time,
-        PresaleError::InvalidPriceFeed
-    );
+    require!(now >= decoded.publish_time, PresaleError::InvalidPriceFeed);
     let age = (now - decoded.publish_time) as u64;
     require!(age <= MAX_PRICE_AGE_SECONDS, PresaleError::InvalidPriceFeed);
 

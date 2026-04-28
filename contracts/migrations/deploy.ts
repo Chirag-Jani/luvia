@@ -24,6 +24,10 @@
 import * as anchor from "@coral-xyz/anchor";
 import { Program } from "@coral-xyz/anchor";
 import {
+  TokenStandard,
+} from "@metaplex-foundation/mpl-token-metadata";
+import { keypairIdentity, Metaplex } from "@metaplex-foundation/js";
+import {
   ASSOCIATED_TOKEN_PROGRAM_ID,
   AuthorityType,
   createAssociatedTokenAccountIdempotent,
@@ -130,6 +134,7 @@ const DEFAULT_SOL_USD_PRICE_UPDATE_DEVNET =
 const RENOUNCE_MINT_AUTHORITY = envBool("RENOUNCE_MINT_AUTHORITY", false);
 const SKIP_MINT_CREATION = envBool("SKIP_MINT_CREATION", false);
 const SKIP_MINT_SUPPLY = envBool("SKIP_MINT_SUPPLY", false);
+const SKIP_METADATA_WIRING = envBool("SKIP_METADATA_WIRING", false);
 const SKIP_INITIALIZE = envBool("SKIP_INITIALIZE", false);
 const SKIP_VAULT_FUND = envBool("SKIP_VAULT_FUND", false);
 
@@ -141,8 +146,36 @@ const EXISTING_TOKEN_MINT = envOptionalString("EXISTING_TOKEN_MINT");
 const DEFAULT_PRESALE_START_TS = 1_777_262_400; // 2026-04-27 00:00 EDT
 const DEFAULT_PRESALE_END_TS = 1_782_496_800; // 2026-06-26 14:00 EDT
 const DEFAULT_MIN_PURCHASE_MICRO_USD = 10_000_000; // $10.00
+const DEFAULT_TOKEN_METADATA_URI =
+  "https://silver-double-manatee-474.mypinata.cloud/ipfs/bafkreidlu3pftdk7yvtl4hpvmzs6odhfexya4um435hrjioljl37lnov7a";
+const TOKEN_METADATA_JSON_PATH = path.resolve(__dirname, "../metadata.json");
 
 // --------------------------------------------------------------------------
+
+type LocalMetadataJson = {
+  name?: string;
+  symbol?: string;
+};
+
+function loadMetadataConfig() {
+  const metadataUri = envString("TOKEN_METADATA_URI", DEFAULT_TOKEN_METADATA_URI);
+  let metadataName = envString("TOKEN_METADATA_NAME", "LUVIA");
+  let metadataSymbol = envString("TOKEN_METADATA_SYMBOL", "LUVIA");
+
+  if (fs.existsSync(TOKEN_METADATA_JSON_PATH)) {
+    const parsed = JSON.parse(
+      fs.readFileSync(TOKEN_METADATA_JSON_PATH, "utf-8"),
+    ) as LocalMetadataJson;
+    metadataName = parsed.name?.trim() || metadataName;
+    metadataSymbol = parsed.symbol?.trim() || metadataSymbol;
+  }
+
+  return {
+    metadataUri,
+    metadataName: metadataName.slice(0, 32),
+    metadataSymbol: metadataSymbol.slice(0, 10),
+  };
+}
 
 async function main() {
   const provider = anchor.AnchorProvider.env();
@@ -179,6 +212,8 @@ async function main() {
   if (EXISTING_TOKEN_MINT) {
     console.log("existing mint :", EXISTING_TOKEN_MINT);
   }
+  const { metadataUri, metadataName, metadataSymbol } = loadMetadataConfig();
+  console.log("metadata uri:", metadataUri);
 
   const deployerBalance = await connection.getBalance(deployer.publicKey);
   console.log("deployer SOL:", deployerBalance / LAMPORTS_PER_SOL);
@@ -281,7 +316,52 @@ async function main() {
   }
 
   // ------------------------------------------------------------------------
-  // 3. Derive PDAs.
+  // 3. Wire token metadata URI on Metaplex Token Metadata program.
+  // ------------------------------------------------------------------------
+  if (SKIP_METADATA_WIRING) {
+    console.log("  skipping metadata wiring (SKIP_METADATA_WIRING=true)");
+  } else {
+    const metaplex = Metaplex.make(connection).use(keypairIdentity(deployer.payer));
+    try {
+      const existingAsset = await metaplex.nfts().findByMint(
+        { mintAddress: mintPubkey, loadJsonMetadata: false },
+        { commitment: "confirmed" },
+      );
+      const updateResult = await metaplex.nfts().update(
+        {
+          nftOrSft: existingAsset,
+          authority: deployer.payer,
+          name: metadataName,
+          symbol: metadataSymbol,
+          uri: metadataUri,
+          sellerFeeBasisPoints: 0,
+          isMutable: true,
+        },
+        { commitment: "confirmed" },
+      );
+      console.log("  metadata updated:", updateResult.response.signature);
+    } catch {
+      const createResult = await metaplex.nfts().createSft(
+        {
+          useExistingMint: mintPubkey,
+          updateAuthority: deployer.payer,
+          mintAuthority: deployer.payer,
+          tokenStandard: TokenStandard.Fungible,
+          name: metadataName,
+          symbol: metadataSymbol,
+          uri: metadataUri,
+          sellerFeeBasisPoints: 0,
+          decimals: TOKEN_DECIMALS,
+          isMutable: true,
+        },
+        { commitment: "confirmed" },
+      );
+      console.log("  metadata created:", createResult.response.signature);
+    }
+  }
+
+  // ------------------------------------------------------------------------
+  // 4. Derive PDAs.
   // ------------------------------------------------------------------------
   const [presaleConfig] = PublicKey.findProgramAddressSync(
     [PRESALE_SEED],
@@ -304,7 +384,7 @@ async function main() {
   console.log("vault        :", vault.toBase58());
 
   // ------------------------------------------------------------------------
-  // 4. Initialize the presale (idempotent via config existence check).
+  // 5. Initialize the presale (idempotent via config existence check).
   // ------------------------------------------------------------------------
   const pythPriceUpdate = new PublicKey(
     process.env.SOL_USD_PRICE_UPDATE ?? DEFAULT_SOL_USD_PRICE_UPDATE_DEVNET,
@@ -340,7 +420,7 @@ async function main() {
   }
 
   // ------------------------------------------------------------------------
-  // 5. Fund the vault with the presale allocation (1.5B LUVIA).
+  // 6. Fund the vault with the presale allocation (1.5B LUVIA).
   // ------------------------------------------------------------------------
   const vaultAcct = await getAccount(
     connection,
@@ -370,7 +450,7 @@ async function main() {
   }
 
   // ------------------------------------------------------------------------
-  // 6. (Optional) renounce mint authority so supply is permanently locked.
+  // 7. (Optional) renounce mint authority so supply is permanently locked.
   // ------------------------------------------------------------------------
   if (RENOUNCE_MINT_AUTHORITY) {
     console.log("renouncing mint authority (supply becomes fixed forever) ...");

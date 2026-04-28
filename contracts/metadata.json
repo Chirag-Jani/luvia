@@ -1,0 +1,26 @@
+{
+  "name": "LUVIA",
+  "symbol": "LUVIA",
+  "description": "LUVIA is the infrastructure token for AI compute, enabling decentralized access to scalable GPU/CPU resources.",
+  "image": "https://silver-double-manatee-474.mypinata.cloud/ipfs/bafybeigcbbrbgmdx7sbfmkfcdgay3rbrwis7bttilrtymxmw36bi7rzmyu",
+  "external_url": "https://luvia.exchange",
+  "attributes": [
+    {
+      "trait_type": "Category",
+      "value": "Utility Token"
+    },
+    {
+      "trait_type": "Network",
+      "value": "Solana"
+    }
+  ],
+  "properties": {
+    "files": [
+      {
+        "uri": "https://silver-double-manatee-474.mypinata.cloud/ipfs/bafybeigcbbrbgmdx7sbfmkfcdgay3rbrwis7bttilrtymxmw36bi7rzmyu",
+        "type": "image/png"
+      }
+    ],
+    "category": "image"
+  }
+}
