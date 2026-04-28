@@ -1,10 +1,18 @@
-.anchor
 .DS_Store
-target
-**/*.rs.bk
 node_modules
-test-ledger
 .yarn
+
+# Anchor / Solana
+.anchor
+test-ledger
+**/*.rs.bk
+**/target/debug
+**/target/release
+**/target/sbpf-solana-solana
+
+# Build output
+dist
+dist-ssr
 
 # Logs
 logs
@@ -15,22 +23,16 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
-node_modules
-dist
-dist-ssr
-*.local
-
-# Env files
+# Local env overrides
 .env
-.env.*.local
 .env.local
+.env.*.local
 !.env.example
 
-# Editor directories and files
+# Editor files
 .vscode/*
 !.vscode/extensions.json
 .idea
-.DS_Store
 *.suo
 *.ntvs*
 *.njsproj

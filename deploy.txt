@@ -1,0 +1,127 @@
+chiragjani@Chirags-Laptop-3 contracts % solshit
+Config File: /Users/chiragjani/.config/solana/cli/config.yml
+RPC URL: https://api.devnet.solana.com 
+WebSocket URL: wss://api.devnet.solana.com/ (computed)
+Keypair Path: /Users/chiragjani/.config/solana/id.json 
+Commitment: confirmed 
+chiragjani@Chirags-Laptop-3 contracts % solmain
+Config File: /Users/chiragjani/.config/solana/cli/config.yml
+RPC URL: https://api.mainnet-beta.solana.com 
+WebSocket URL: wss://api.mainnet-beta.solana.com/ (computed)
+Keypair Path: /Users/chiragjani/.config/solana/id.json 
+Commitment: confirmed 
+chiragjani@Chirags-Laptop-3 contracts % sb
+3.457063713 SOL
+chiragjani@Chirags-Laptop-3 contracts % ANCHOR_PROVIDER_URL="https://mainnet.helius-rpc.com/?api-key=7bd3a79b-801f-42e5-96e6-423677c671db" anchor deploy --provider.cluster mainnet
+Deploying cluster: https://api.mainnet-beta.solana.com
+Upgrade authority: /Users/chiragjani/.config/solana/id.json
+Deploying program "luvia_presale"...
+Program path: /Users/chiragjani/Documents/me/luvia/contracts/target/deploy/luvia_presale.so...
+Program Id: Ca1WexB1cqgAZFei98eCGKMNzNHSj8yzG7sHdKJdZ1tM
+
+Signature: 3xtvMYNCCy7gkwZ6yJksF7TUs2j3cdXreufjLA2HStHXnBpRzYkTbtoEg6nhr82uCmGRKo7kXsiZpuL4YPNfV7dZ
+
+Deploy success
+chiragjani@Chirags-Laptop-3 contracts % sb
+1.270574233 SOL
+chiragjani@Chirags-Laptop-3 contracts % yarn deploy
+yarn run v1.22.22
+$ ts-node migrations/deploy.ts
+== LUVIA presale deploy ==
+cluster : https://mainnet.helius-rpc.com/?api-key=7bd3a79b-801f-42e5-96e6-423677c671db
+deployer: 9Yhqmv2CvHwEzRLmQoSaz6z2C5xGngu5DqRgoNYpMPyj
+admin   : HnmDd6g9fKUTzYnUZHJ2hkNhZR384HCLeHccxx5Gm63X
+presale start: 1777405380
+presale end  : 1780947780
+min purchase : 10000000 micro-USD
+program : Ca1WexB1cqgAZFei98eCGKMNzNHSj8yzG7sHdKJdZ1tM
+token decimals: 9
+total supply  : 10000000000000000000 base units
+presale alloc : 1500000000000000000 base units
+mint keypair path: /Users/chiragjani/Documents/me/luvia/contracts/migrations/luvia-mint.json
+metadata uri: https://silver-double-manatee-474.mypinata.cloud/ipfs/bafkreidlu3pftdk7yvtl4hpvmzs6odhfexya4um435hrjioljl37lnov7a
+deployer SOL: 1.270574233
+created mint keypair: 6Efe2c9YTfevZPVhtmG2ZLUefLishNWNUnh6Kmqx15Hg
+creating Token-2022 mint ...
+  mint created: 6Efe2c9YTfevZPVhtmG2ZLUefLishNWNUnh6Kmqx15Hg
+minting 10000000000000000000 base units to admin ATA 3gytcsTh3sjKE37Ro7oRkngmgYm4ieV2jqBs3hGvqBxR ...
+AccountNotFoundError: The account of type [Metadata] was not found at the provided address [9iJoNC6iy7Le1Tocb3HacxwzyM9zKjGPNjpD32D8FMmm].
+
+Source: SDK
+
+    at assertAccountExists (/Users/chiragjani/Documents/me/luvia/contracts/node_modules/@metaplex-foundation/js/src/types/Account.ts:82:11)
+    at Object.toMetadataAccount (/Users/chiragjani/Documents/me/luvia/contracts/node_modules/@metaplex-foundation/js/src/types/Account.ts:69:7)
+    at Object.handle (/Users/chiragjani/Documents/me/luvia/contracts/node_modules/@metaplex-foundation/js/src/plugins/nftModule/operations/findNftByMint.ts:151:33)
+    at processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async Disposable.run (/Users/chiragjani/Documents/me/luvia/contracts/node_modules/@metaplex-foundation/js/src/utils/Disposable.ts:33:14)
+    at async Object.handle (/Users/chiragjani/Documents/me/luvia/contracts/node_modules/@metaplex-foundation/js/src/plugins/nftModule/operations/createSft.ts:369:17)
+    at async Disposable.run (/Users/chiragjani/Documents/me/luvia/contracts/node_modules/@metaplex-foundation/js/src/utils/Disposable.ts:33:14)
+    at async main (/Users/chiragjani/Documents/me/luvia/contracts/migrations/deploy.ts:344:28) {
+  source: 'sdk',
+  sourceDetails: undefined,
+  cause: undefined
+}
+error Command failed with exit code 1.
+info Visit https://yarnpkg.com/en/docs/cli/run for documentation about this command.
+chiragjani@Chirags-Laptop-3 contracts % sb
+1.251897953 SOL
+chiragjani@Chirags-Laptop-3 contracts % st
+On branch main
+Changes not staged for commit:
+  (use "git add <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+        modified:   Anchor.toml
+        modified:   README.md
+        modified:   migrations/luvia-mint.json
+        modified:   programs/luvia_presale/src/lib.rs
+        modified:   ../luvia-frontend/.env.example
+        modified:   ../luvia-frontend/src/idl/luvia_presale.json
+        modified:   ../luvia-frontend/src/idl/luvia_presale.ts
+        modified:   ../luvia-frontend/src/lib/solana/config.ts
+        modified:   ../status.md
+
+no changes added to commit (use "git add" and/or "git commit -a")
+chiragjani@Chirags-Laptop-3 contracts % yarn deploy
+yarn run v1.22.22
+$ ts-node migrations/deploy.ts
+== LUVIA presale deploy ==
+cluster : https://mainnet.helius-rpc.com/?api-key=7bd3a79b-801f-42e5-96e6-423677c671db
+deployer: 9Yhqmv2CvHwEzRLmQoSaz6z2C5xGngu5DqRgoNYpMPyj
+admin   : HnmDd6g9fKUTzYnUZHJ2hkNhZR384HCLeHccxx5Gm63X
+presale start: 1777405380
+presale end  : 1780947780
+min purchase : 10000000 micro-USD
+program : Ca1WexB1cqgAZFei98eCGKMNzNHSj8yzG7sHdKJdZ1tM
+token decimals: 9
+total supply  : 10000000000000000000 base units
+presale alloc : 1500000000000000000 base units
+mint keypair path: /Users/chiragjani/Documents/me/luvia/contracts/migrations/luvia-mint.json
+metadata uri: https://silver-double-manatee-474.mypinata.cloud/ipfs/bafkreidlu3pftdk7yvtl4hpvmzs6odhfexya4um435hrjioljl37lnov7a
+deployer SOL: 1.251897953
+reusing mint keypair: 6Efe2c9YTfevZPVhtmG2ZLUefLishNWNUnh6Kmqx15Hg
+  mint already exists, skipping creation
+  mint skipped (already funded or SKIP_MINT_SUPPLY=true)
+  skipping metadata wiring (SKIP_METADATA_WIRING=true)
+presaleConfig: ARNL3js6UfpY5mJb3YvPYAjfqFaaXu1iQjo2QJtyKAjJ
+treasury     : DE83t6mStRgavZndEAjr4nXR3XfYEhxe6hMV9QYTXLP5
+vault        : GjskCyseQa52sq6FprxwbwbZGpsabNBoUuj4Mi6DdewL
+calling initialize ...
+  initialize tx: 3aSnoLgTLPqcReywjcDfyGNdZkPNbhQociNmbiWyHVZ7vguNaFxkpajzaurTUGcv1BfMa2SwH9UF8wPHdohQym5y
+transferring 1500000000000000000 base units to vault ...
+  vault funded
+
+== deploy complete ==
+config.admin         : HnmDd6g9fKUTzYnUZHJ2hkNhZR384HCLeHccxx5Gm63X
+config.treasury      : DE83t6mStRgavZndEAjr4nXR3XfYEhxe6hMV9QYTXLP5
+config.token_mint    : 6Efe2c9YTfevZPVhtmG2ZLUefLishNWNUnh6Kmqx15Hg
+config.token_vault   : GjskCyseQa52sq6FprxwbwbZGpsabNBoUuj4Mi6DdewL
+config.pyth_feed     : 7UVimffxr9ow1uXYxsr4LHAcV58mLzhmwaeKvJ1pjLiE
+config.current_stage : 0
+config.paused        : false
+vault balance        : 1500000000000000000
+  stage 1: $0.010  alloc=375000000000000000  sold=0
+  stage 2: $0.015  alloc=375000000000000000  sold=0
+  stage 3: $0.020  alloc=375000000000000000  sold=0
+  stage 4: $0.025  alloc=375000000000000000  sold=0
+✨  Done in 16.45s.
+chiragjani@Chirags-Laptop-3 contracts % 
