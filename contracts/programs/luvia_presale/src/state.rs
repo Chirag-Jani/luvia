@@ -104,3 +104,10 @@ pub struct MinPurchaseUpdated {
     pub admin: Pubkey,
     pub min_purchase_micro_usd: u64,
 }
+
+#[event]
+pub struct PresaleEndUpdated {
+    pub admin: Pubkey,
+    pub previous_presale_end_ts: i64,
+    pub new_presale_end_ts: i64,
+}

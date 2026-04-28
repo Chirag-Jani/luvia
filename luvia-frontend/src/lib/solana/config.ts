@@ -20,7 +20,7 @@ export const RPC_ENDPOINT =
 
 export const PROGRAM_ID = new PublicKey(
   envOrUndefined(import.meta.env.VITE_LUVIA_PROGRAM_ID) ??
-    "Di5NocJPGyEvqTRcXK3P8CrgjgUeD8F3ZNTSfepWB3KF",
+    "9zR6MgpFTv29tqmWpZs23JbgiB1cmWVMcsPY7aH4x17E",
 );
 
 /**
@@ -49,17 +49,8 @@ export const STAGE_PRICES_USD = [0.01, 0.015, 0.02, 0.025] as const;
 export const LISTING_PRICE_USD = 0.1;
 export const FUNDRAISING_GOAL_USD = 6_000_000;
 export const SEEDED_RAISED_USD = 268_000;
-export const PRESALE_FALLBACK_DAYS = 40;
 export const CONTACT_EMAIL = "Info@luvia.exchange";
 
 /** Per-stage allocation (375M LUVIA) — hardcoded in the program. */
 export const PER_STAGE_ALLOCATION_UI = 375_000_000;
 export const MIN_PURCHASE_USD = 10;
-
-/**
- * Optional presale end date. If unset the UI falls back to now + configured days.
- * Accepts any value parseable by `new Date(...)` (ISO 8601 recommended).
- */
-export const PRESALE_END_DATE = envOrUndefined(
-  import.meta.env.VITE_PRESALE_END_DATE,
-);

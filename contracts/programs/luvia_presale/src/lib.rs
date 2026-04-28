@@ -25,7 +25,7 @@ use crate::errors::PresaleError;
 use crate::pyth::{decode_price_update, feed_id_from_hex};
 use crate::state::*;
 
-declare_id!("Di5NocJPGyEvqTRcXK3P8CrgjgUeD8F3ZNTSfepWB3KF");
+declare_id!("9zR6MgpFTv29tqmWpZs23JbgiB1cmWVMcsPY7aH4x17E");
 
 #[program]
 pub mod luvia_presale {
@@ -392,6 +392,25 @@ pub mod luvia_presale {
         emit!(MinPurchaseUpdated {
             admin: ctx.accounts.admin.key(),
             min_purchase_micro_usd,
+        });
+        Ok(())
+    }
+
+    /// Admin-only update of presale end timestamp (unix seconds).
+    pub fn set_presale_end(ctx: Context<AdminOnly>, new_presale_end_ts: i64) -> Result<()> {
+        let cfg = &mut ctx.accounts.presale_config;
+        require!(
+            new_presale_end_ts > cfg.presale_start_ts,
+            PresaleError::InvalidAmount
+        );
+
+        let previous = cfg.presale_end_ts;
+        cfg.presale_end_ts = new_presale_end_ts;
+
+        emit!(PresaleEndUpdated {
+            admin: ctx.accounts.admin.key(),
+            previous_presale_end_ts: previous,
+            new_presale_end_ts,
         });
         Ok(())
     }

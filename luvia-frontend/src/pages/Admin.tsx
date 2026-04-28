@@ -23,6 +23,7 @@ import {
   unpausePresale,
   withdrawUnsoldTokens,
   setMinimumPurchaseUsd,
+  setPresaleEndTimestamp,
 } from "@/lib/solana/admin";
 import { connection } from "@/lib/solana/connection";
 
@@ -44,6 +45,7 @@ const Admin = () => {
 
   const [withdrawTokenAmount, setWithdrawTokenAmount] = useState("0");
   const [minPurchaseUsd, setMinPurchaseUsd] = useState("10");
+  const [presaleEndInput, setPresaleEndInput] = useState("");
 
   const isAdmin = Boolean(
     connected && publicKey && presale && publicKey.equals(presale.admin)
@@ -90,6 +92,16 @@ const Admin = () => {
       setMinPurchaseUsd(presale.minPurchaseUsd.toFixed(2));
     }
   }, [presale?.minPurchaseUsd]);
+
+  useEffect(() => {
+    if (!presale?.presaleEndTs) return;
+    const d = new Date(presale.presaleEndTs * 1000);
+    const pad = (n: number) => n.toString().padStart(2, "0");
+    const local = `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(
+      d.getHours()
+    )}:${pad(d.getMinutes())}`;
+    setPresaleEndInput(local);
+  }, [presale?.presaleEndTs]);
 
   const totalRemainingUi = useMemo(() => {
     if (!presale) return 0;
@@ -146,6 +158,24 @@ const Admin = () => {
         admin: publicKey,
         walletProvider,
         minPurchaseUsd: v,
+      });
+    },
+    onSuccess: () => refresh(),
+  });
+
+  const adminSetPresaleEnd = useMutation({
+    mutationFn: async () => {
+      if (!publicKey || !isAdmin) throw new Error("Admin wallet required.");
+      if (!walletProvider) throw new Error("Connect wallet first.");
+      if (!presaleEndInput) throw new Error("Enter presale end date/time.");
+      const parsed = new Date(presaleEndInput);
+      if (Number.isNaN(parsed.getTime())) {
+        throw new Error("Invalid date/time.");
+      }
+      return setPresaleEndTimestamp({
+        admin: publicKey,
+        walletProvider,
+        presaleEndTs: Math.floor(parsed.getTime() / 1000),
       });
     },
     onSuccess: () => refresh(),
@@ -368,7 +398,8 @@ const Admin = () => {
                         adminUnpause.isPending ||
                         adminAdvanceStage.isPending ||
                         adminWithdrawUnsold.isPending ||
-                        adminSetMinPurchase.isPending
+                        adminSetMinPurchase.isPending ||
+                        adminSetPresaleEnd.isPending
                       }
                     >
                       Refresh State
@@ -399,6 +430,32 @@ const Admin = () => {
                       disabled={adminSetMinPurchase.isPending}
                     >
                       Update Min Purchase
+                    </Button>
+                  </div>
+
+                  <div className="grid sm:grid-cols-[1fr_auto] gap-3 items-end">
+                    <div>
+                      <label className="text-xs uppercase tracking-widest text-muted-foreground">
+                        Presale End Date/Time (UTC/local browser)
+                      </label>
+                      <Input
+                        value={presaleEndInput}
+                        onChange={(e) => setPresaleEndInput(e.target.value)}
+                        className="mt-2"
+                        type="datetime-local"
+                      />
+                      <div className="mt-1 text-[11px] text-muted-foreground">
+                        Current on-chain ts: {presale?.presaleEndTs ?? "—"}
+                      </div>
+                    </div>
+                    <Button
+                      variant="outline"
+                      onClick={() =>
+                        runAction("Update presale end timestamp", adminSetPresaleEnd)
+                      }
+                      disabled={adminSetPresaleEnd.isPending}
+                    >
+                      Update End Date
                     </Button>
                   </div>
                 </TabsContent>

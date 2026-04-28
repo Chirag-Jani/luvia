@@ -325,6 +325,22 @@ describe("luvia_presale", () => {
     expect(threw).to.eq(true);
   });
 
+  it("updates presale end timestamp (admin)", async () => {
+    const before = await program.account.presaleConfig.fetch(presaleConfig);
+    const nextEnd = new BN(before.presaleEndTs.toNumber() + 86_400);
+
+    await program.methods
+      .setPresaleEnd(nextEnd)
+      .accountsStrict({
+        admin: admin.publicKey,
+        presaleConfig,
+      })
+      .rpc();
+
+    const after = await program.account.presaleConfig.fetch(presaleConfig);
+    expect(after.presaleEndTs.toString()).to.eq(nextEnd.toString());
+  });
+
   it("pauses and blocks buys, then unpauses", async () => {
     await program.methods
       .pause()

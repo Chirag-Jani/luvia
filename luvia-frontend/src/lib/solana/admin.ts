@@ -162,3 +162,27 @@ export async function setMinimumPurchaseUsd(params: {
       .instruction(),
   });
 }
+
+export async function setPresaleEndTimestamp(params: {
+  admin: PublicKey;
+  walletProvider: SolanaWalletProvider;
+  presaleEndTs: number;
+}) {
+  const { admin, walletProvider, presaleEndTs } = params;
+  const program = buildProgramForWallet(makeWalletShim(admin));
+  if (!Number.isFinite(presaleEndTs) || presaleEndTs <= 0) {
+    throw new Error("Invalid presale end timestamp.");
+  }
+
+  return sendAdminInstruction({
+    admin,
+    walletProvider,
+    instruction: program.methods
+      .setPresaleEnd(new BN(Math.floor(presaleEndTs).toString()))
+      .accountsStrict({
+        admin,
+        presaleConfig: PRESALE_CONFIG_PDA,
+      })
+      .instruction(),
+  });
+}

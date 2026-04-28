@@ -5,7 +5,7 @@
  * IDL can be found at `target/idl/luvia_presale.json`.
  */
 export type LuviaPresale = {
-  address: "Di5NocJPGyEvqTRcXK3P8CrgjgUeD8F3ZNTSfepWB3KF";
+  address: "9zR6MgpFTv29tqmWpZs23JbgiB1cmWVMcsPY7aH4x17E";
   metadata: {
     name: "luviaPresale";
     version: "0.1.0";
@@ -490,6 +490,51 @@ export type LuviaPresale = {
       ];
     },
     {
+      name: "setPresaleEnd";
+      docs: ["Admin-only update of presale end timestamp (unix seconds)."];
+      discriminator: [110, 179, 151, 200, 189, 204, 88, 19];
+      accounts: [
+        {
+          name: "admin";
+          signer: true;
+          relations: ["presaleConfig"];
+        },
+        {
+          name: "presaleConfig";
+          writable: true;
+          pda: {
+            seeds: [
+              {
+                kind: "const";
+                value: [
+                  112,
+                  114,
+                  101,
+                  115,
+                  97,
+                  108,
+                  101,
+                  95,
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103,
+                ];
+              },
+            ];
+          };
+        },
+      ];
+      args: [
+        {
+          name: "newPresaleEndTs";
+          type: "i64";
+        },
+      ];
+    },
+    {
       name: "unpause";
       discriminator: [169, 144, 4, 38, 10, 141, 188, 255];
       accounts: [
@@ -736,6 +781,10 @@ export type LuviaPresale = {
       discriminator: [103, 99, 225, 170, 238, 250, 90, 75];
     },
     {
+      name: "presaleEndUpdated";
+      discriminator: [108, 12, 156, 115, 137, 1, 171, 107];
+    },
+    {
       name: "stageAdvanced";
       discriminator: [238, 247, 141, 164, 52, 239, 99, 134];
     },
@@ -848,6 +897,26 @@ export type LuviaPresale = {
           {
             name: "minPurchaseMicroUsd";
             type: "u64";
+          },
+        ];
+      };
+    },
+    {
+      name: "presaleEndUpdated";
+      type: {
+        kind: "struct";
+        fields: [
+          {
+            name: "admin";
+            type: "pubkey";
+          },
+          {
+            name: "previousPresaleEndTs";
+            type: "i64";
+          },
+          {
+            name: "newPresaleEndTs";
+            type: "i64";
           },
         ];
       };

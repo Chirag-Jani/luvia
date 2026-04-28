@@ -49,8 +49,6 @@ import {
   LISTING_PRICE_USD,
   MIN_PURCHASE_USD,
   PER_STAGE_ALLOCATION_UI,
-  PRESALE_FALLBACK_DAYS,
-  PRESALE_END_DATE,
   SEEDED_RAISED_USD,
   STAGE_PRICES_USD,
 } from "@/lib/solana/config";
@@ -102,16 +100,8 @@ const Buy = () => {
   } | null>(null);
 
   const endDate = useMemo(() => {
-    if (presale?.presaleEndTs) {
-      return new Date(presale.presaleEndTs * 1000);
-    }
-    if (PRESALE_END_DATE) {
-      const d = new Date(PRESALE_END_DATE);
-      if (!Number.isNaN(d.getTime())) return d;
-    }
-    const d = new Date();
-    d.setDate(d.getDate() + PRESALE_FALLBACK_DAYS);
-    return d;
+    const ts = presale?.presaleEndTs ?? Math.floor(Date.now() / 1000);
+    return new Date(ts * 1000);
   }, [presale?.presaleEndTs]);
 
   const stages = presale?.stages ?? FALLBACK_STAGES;

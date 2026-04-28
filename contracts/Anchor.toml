@@ -6,10 +6,10 @@ resolution = true
 skip-lint = false
 
 [programs.devnet]
-luvia_presale = "Di5NocJPGyEvqTRcXK3P8CrgjgUeD8F3ZNTSfepWB3KF"
+luvia_presale = "9zR6MgpFTv29tqmWpZs23JbgiB1cmWVMcsPY7aH4x17E"
 
 [programs.localnet]
-luvia_presale = "Di5NocJPGyEvqTRcXK3P8CrgjgUeD8F3ZNTSfepWB3KF"
+luvia_presale = "9zR6MgpFTv29tqmWpZs23JbgiB1cmWVMcsPY7aH4x17E"
 
 [registry]
 url = "https://api.apr.dev"

@@ -14,25 +14,14 @@ import { Competitive } from "@/components/luvia/Competitive";
 import { UseCases } from "@/components/luvia/UseCases";
 import { FAQ } from "@/components/luvia/FAQ";
 import { Footer } from "@/components/luvia/Footer";
-import { PRESALE_END_DATE, PRESALE_FALLBACK_DAYS } from "@/lib/solana/config";
 import { usePresaleState } from "@/hooks/usePresaleState";
 
 const Index = () => {
   const { data: presale } = usePresaleState();
 
   const endDate = useMemo(() => {
-    if (presale?.presaleEndTs) {
-      return new Date(presale.presaleEndTs * 1000);
-    }
-    if (PRESALE_END_DATE) {
-      const parsed = new Date(PRESALE_END_DATE);
-      if (!Number.isNaN(parsed.getTime())) {
-        return parsed;
-      }
-    }
-    const fallback = new Date();
-    fallback.setDate(fallback.getDate() + PRESALE_FALLBACK_DAYS);
-    return fallback;
+    const ts = presale?.presaleEndTs ?? Math.floor(Date.now() / 1000);
+    return new Date(ts * 1000);
   }, [presale?.presaleEndTs]);
 
   return (
