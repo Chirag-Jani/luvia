@@ -106,6 +106,7 @@ export function useBuyTokens() {
             buyer: publicKey,
             solLamports,
             tokenMint: presale.tokenMint,
+            pythPriceUpdate: presale.pythPriceUpdate,
             adminWallet: presale.admin,
           });
           transactions = built.transactions;

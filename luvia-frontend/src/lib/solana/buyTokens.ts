@@ -1,12 +1,12 @@
 import { BN } from "@coral-xyz/anchor";
 import type { Wallet } from "@coral-xyz/anchor";
-import { PythSolanaReceiver } from "@pythnetwork/pyth-solana-receiver";
 import {
+  ComputeBudgetProgram,
   Keypair,
   PublicKey,
   Transaction,
+  TransactionMessage,
   VersionedTransaction,
-  type Signer,
 } from "@solana/web3.js";
 import {
   ASSOCIATED_TOKEN_PROGRAM_ID,
@@ -15,11 +15,9 @@ import {
 } from "@solana/spl-token";
 import { SystemProgram } from "@solana/web3.js";
 
-import { SOL_USD_FEED_ID } from "./config";
 import { connection } from "./connection";
 import { PRESALE_CONFIG_PDA, TREASURY_PDA } from "./pdas";
 import { buildProgramForWallet } from "./program";
-import { fetchLatestSolPriceUpdate } from "./pyth";
 
 export interface BuyTxBundle {
   transactions: VersionedTransaction[];
@@ -42,9 +40,10 @@ export async function buildBuyTokensTransactions(params: {
   buyer: PublicKey;
   solLamports: bigint;
   tokenMint: PublicKey;
+  pythPriceUpdate: PublicKey;
   adminWallet: PublicKey;
 }): Promise<BuyTxBundle> {
-  const { buyer, solLamports, tokenMint, adminWallet } = params;
+  const { buyer, solLamports, tokenMint, pythPriceUpdate, adminWallet } = params;
 
   try {
     if (!(buyer instanceof PublicKey)) {
@@ -56,26 +55,6 @@ export async function buildBuyTokensTransactions(params: {
 
     const walletShim = makeWalletShim(buyer);
     const program = buildProgramForWallet(walletShim);
-
-    const priceUpdates = await fetchLatestSolPriceUpdate();
-    if (!priceUpdates || priceUpdates.length === 0) {
-      throw new Error("No Pyth price updates returned from Hermes");
-    }
-
-    const receiver = new PythSolanaReceiver({
-      connection,
-      wallet: walletShim,
-    });
-
-    const builder = receiver.newTransactionBuilder({
-      // Reclaim rent from temporary Pyth update accounts in the same flow.
-      // This reduces balance pressure and improves mobile wallet reliability.
-      closeUpdateAccounts: true,
-    });
-
-    // Use fully verified posting on mainnet for better compatibility and
-    // fewer `InstructionError: InvalidArgument` failures in wallet browsers.
-    await builder.addPostPriceUpdates(priceUpdates);
 
     const tokenVault = getAssociatedTokenAddressSync(
       tokenMint,
@@ -91,54 +70,35 @@ export async function buildBuyTokensTransactions(params: {
       TOKEN_2022_PROGRAM_ID,
       ASSOCIATED_TOKEN_PROGRAM_ID
     );
+    const buyIx = await program.methods
+      .buyTokens(new BN(solLamports.toString()))
+      .accountsStrict({
+        buyer,
+        presaleConfig: PRESALE_CONFIG_PDA,
+        treasury: TREASURY_PDA,
+        tokenMint,
+        tokenVault,
+        buyerTokenAccount,
+        pythPriceUpdate,
+        tokenProgram: TOKEN_2022_PROGRAM_ID,
+        associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
+        systemProgram: SystemProgram.programId,
+      })
+      .remainingAccounts([{ pubkey: adminWallet, isSigner: false, isWritable: true }])
+      .instruction();
 
-    await builder.addPriceConsumerInstructions(async (getPriceUpdateAccount) => {
-      let pythPriceUpdate: PublicKey;
-      try {
-        pythPriceUpdate = getPriceUpdateAccount(SOL_USD_FEED_ID);
-      } catch {
-        pythPriceUpdate = getPriceUpdateAccount(
-          SOL_USD_FEED_ID.replace(/^0x/i, "")
-        );
-      }
+    const { blockhash } = await connection.getLatestBlockhash("confirmed");
+    const message = new TransactionMessage({
+      payerKey: buyer,
+      recentBlockhash: blockhash,
+      instructions: [
+        ComputeBudgetProgram.setComputeUnitPrice({ microLamports: 50_000 }),
+        ComputeBudgetProgram.setComputeUnitLimit({ units: 350_000 }),
+        buyIx,
+      ],
+    }).compileToV0Message();
 
-      const ix = await program.methods
-        .buyTokens(new BN(solLamports.toString()))
-        .accountsStrict({
-          buyer,
-          presaleConfig: PRESALE_CONFIG_PDA,
-          treasury: TREASURY_PDA,
-          tokenMint,
-          tokenVault,
-          buyerTokenAccount,
-          pythPriceUpdate,
-          tokenProgram: TOKEN_2022_PROGRAM_ID,
-          associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
-          systemProgram: SystemProgram.programId,
-        })
-        .remainingAccounts([{ pubkey: adminWallet, isSigner: false, isWritable: true }])
-        .instruction();
-      return [{ instruction: ix, signers: [] }];
-    });
-
-    const built = await builder.buildVersionedTransactions({
-      computeUnitPriceMicroLamports: 50_000,
-      // Keep generous CU budget because `buy_tokens` can trigger ATA creation
-      // (`init_if_needed`) for first-time buyers.
-      tightComputeBudget: false,
-    });
-
-    const transactions: VersionedTransaction[] = built.map(
-      ({ tx, signers }: { tx: VersionedTransaction; signers: Signer[] }) => {
-        if (signers.length > 0) tx.sign(signers);
-        return tx;
-      }
-    );
-
-    if (transactions.length === 0) {
-      throw new Error("Pyth builder returned zero transactions");
-    }
-    return { transactions };
+    return { transactions: [new VersionedTransaction(message)] };
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
     throw new Error(`buyTokens builder failed: ${message}`);
