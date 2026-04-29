@@ -20,7 +20,7 @@ export const RPC_ENDPOINT =
 
 export const PROGRAM_ID = new PublicKey(
   envOrUndefined(import.meta.env.VITE_LUVIA_PROGRAM_ID) ??
-    "Ca1WexB1cqgAZFei98eCGKMNzNHSj8yzG7sHdKJdZ1tM",
+    "9285q1u8PqpHbTfqVW1bmmZPahzZWLN275G2m32ifBBp",
 );
 
 /**

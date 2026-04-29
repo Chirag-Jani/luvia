@@ -38,9 +38,13 @@ pub const PYTH_RECEIVER_PROGRAM_ID: Pubkey =
 /// 8-byte Anchor discriminator for `PriceUpdateV2`.
 const PRICE_UPDATE_V2_DISCRIMINATOR: [u8; 8] = [34, 241, 35, 99, 157, 126, 244, 205];
 
-/// Offset into the account data where the `PriceFeedMessage` begins.
-///   8 (discriminator) + 32 (write_authority) + 2 (verification_level: tag + u8)
-const PRICE_FEED_MESSAGE_OFFSET: usize = 8 + 32 + 2;
+/// Offset into the account data where the `verification_level` enum begins.
+///   8 (discriminator) + 32 (write_authority)
+const VERIFICATION_LEVEL_OFFSET: usize = 8 + 32;
+
+/// Borsh enum tags for `VerificationLevel`.
+const VERIFICATION_LEVEL_PARTIAL_TAG: u8 = 0; // Partial { num_signatures: u8 } -> 2 bytes
+const VERIFICATION_LEVEL_FULL_TAG: u8 = 1; // Full                              -> 1 byte
 
 /// Lightweight decoded view of a Pyth price update.
 pub struct DecodedPrice {
@@ -70,11 +74,26 @@ pub fn decode_price_update(account: &AccountInfo) -> Result<DecodedPrice> {
         PresaleError::InvalidPriceFeed
     );
     require!(
-        data.len() >= PRICE_FEED_MESSAGE_OFFSET + 32 + 8 + 8 + 4 + 8 + 8 + 8 + 8,
+        data.len() > VERIFICATION_LEVEL_OFFSET,
         PresaleError::InvalidPriceFeed
     );
 
-    let mut cur = PRICE_FEED_MESSAGE_OFFSET;
+    // VerificationLevel enum is borsh-encoded with a 1-byte tag:
+    //   Partial { num_signatures: u8 } -> 1 (tag) + 1 (u8)  = 2 bytes
+    //   Full                            -> 1 (tag)           = 1 byte
+    let verification_tag = data[VERIFICATION_LEVEL_OFFSET];
+    let price_feed_offset = match verification_tag {
+        VERIFICATION_LEVEL_PARTIAL_TAG => VERIFICATION_LEVEL_OFFSET + 2,
+        VERIFICATION_LEVEL_FULL_TAG => VERIFICATION_LEVEL_OFFSET + 1,
+        _ => return err!(PresaleError::InvalidPriceFeed),
+    };
+
+    require!(
+        data.len() >= price_feed_offset + 32 + 8 + 8 + 4 + 8 + 8 + 8 + 8,
+        PresaleError::InvalidPriceFeed
+    );
+
+    let mut cur = price_feed_offset;
 
     let feed_id: [u8; 32] = data[cur..cur + 32]
         .try_into()

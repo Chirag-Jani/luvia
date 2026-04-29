@@ -187,15 +187,22 @@ const Admin = () => {
         throw new Error("Admin wallet required.");
       }
       if (!walletProvider) throw new Error("Connect wallet first.");
-      const trimmed = withdrawTokenAmount.trim().toLowerCase();
-      const amount =
-        trimmed === "all"
-          ? BigInt("18446744073709551615")
-          : BigInt(
-              Math.max(0, Math.floor(Number(trimmed || "0") * BASE_UNIT_DIVISOR))
-            );
-      if (amount <= 0n) {
-        throw new Error('Enter token amount or "all".');
+      const raw = withdrawTokenAmount.trim().toLowerCase();
+      // Allow comma/space separated numbers ("1,499,998,983") and "all".
+      const sanitized = raw.replace(/[,\s_]/g, "");
+      let amount: bigint;
+      if (sanitized === "" || sanitized === "all" || sanitized === "max") {
+        amount = BigInt("18446744073709551615");
+      } else {
+        const numeric = Number(sanitized);
+        if (!Number.isFinite(numeric) || numeric <= 0) {
+          throw new Error('Enter a valid token amount or "all".');
+        }
+        const baseUnits = Math.floor(numeric * BASE_UNIT_DIVISOR);
+        if (!Number.isFinite(baseUnits) || baseUnits <= 0) {
+          throw new Error("Amount too small or invalid.");
+        }
+        amount = BigInt(baseUnits);
       }
       return withdrawUnsoldTokens({
         admin: publicKey,
@@ -466,12 +473,21 @@ const Admin = () => {
                       <label className="text-xs uppercase tracking-widest text-muted-foreground">
                         Withdraw Unsold Tokens
                       </label>
-                      <Input
-                        value={withdrawTokenAmount}
-                        onChange={(e) => setWithdrawTokenAmount(e.target.value)}
-                        className="mt-2"
-                        placeholder='LUVIA amount or "all"'
-                      />
+                      <div className="relative mt-2">
+                        <Input
+                          value={withdrawTokenAmount}
+                          onChange={(e) => setWithdrawTokenAmount(e.target.value)}
+                          className="pr-16"
+                          placeholder='LUVIA amount or "all"'
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setWithdrawTokenAmount("all")}
+                          className="absolute inset-y-0 right-2 my-auto h-7 px-2 rounded-md text-[11px] font-semibold uppercase tracking-widest bg-secondary/70 hover:bg-secondary text-foreground/80 hover:text-foreground transition-colors"
+                        >
+                          Max
+                        </button>
+                      </div>
                       <div className="mt-1 text-[11px] text-muted-foreground">
                         Available: {formatUi(tokenVaultUiBalance ?? 0, 2)} LUVIA
                       </div>

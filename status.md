@@ -56,7 +56,7 @@ Buy flow is functional and confirmed working.
 
 - initialize now accepts explicit `initial_admin` (deployer can assign client wallet as admin)
 - network default: `devnet`
-- program id default: `Ca1WexB1cqgAZFei98eCGKMNzNHSj8yzG7sHdKJdZ1tM`
+- program id default: `9285q1u8PqpHbTfqVW1bmmZPahzZWLN275G2m32ifBBp`
 - token decimals: `9`
 - stage display prices in frontend config: `0.01, 0.015, 0.02, 0.025`
 - minimum purchase default: `$10` (now on-chain configurable by admin)
