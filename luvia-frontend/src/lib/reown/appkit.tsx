@@ -15,13 +15,24 @@ const envOrUndefined = (value: unknown): string | undefined => {
   return v.length > 0 ? v : undefined;
 };
 
-const PROJECT_ID =
-  envOrUndefined(import.meta.env.VITE_REOWN_PROJECT_ID) ??
-  "af6532cb4e12f8182be77d83b4b4395a";
+const PROJECT_ID = envOrUndefined(import.meta.env.VITE_REOWN_PROJECT_ID);
 
-const activeNetwork: AppKitNetwork =
+if (!PROJECT_ID) {
+  throw new Error(
+    "VITE_REOWN_PROJECT_ID is not set. Get one at https://cloud.reown.com and add your deployed domain under the project's Domains list.",
+  );
+}
+
+// Solana wallets sign whatever transaction we give them; the network advertised
+// over WalletConnect is just a handshake hint. Mobile wallets that connect via
+// WC (Trust, Solflare, Backpack, OKX, …) only whitelist Solana mainnet on their
+// relay, so we must always include `solana` in the namespace, even on devnet
+// builds — otherwise their `session_propose` is silently rejected and the
+// connect modal hangs on a loading spinner.
+const defaultNetwork: AppKitNetwork =
   CLUSTER === "mainnet-beta" ? solana : solanaDevnet;
-const networks: [AppKitNetwork, ...AppKitNetwork[]] = [activeNetwork];
+const networks: [AppKitNetwork, ...AppKitNetwork[]] =
+  CLUSTER === "mainnet-beta" ? [solana] : [solana, solanaDevnet];
 
 const solanaAdapter = new SolanaAdapter();
 
@@ -42,7 +53,7 @@ const metadata = {
 createAppKit({
   adapters: [solanaAdapter],
   networks,
-  defaultNetwork: activeNetwork,
+  defaultNetwork,
   projectId: PROJECT_ID,
   metadata,
   features: {
