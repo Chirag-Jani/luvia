@@ -13,6 +13,7 @@ import {
   CheckCircle2,
   ExternalLink,
   FileCheck2,
+  Info,
   Loader2,
   ShieldCheck,
   Zap,
@@ -116,6 +117,7 @@ const Buy = () => {
 
   const tokenPriceUsd = activeStage?.priceUsd ?? STAGE_PRICES_USD[0];
   const minimumPurchaseUsd = presale?.minPurchaseUsd ?? MIN_PURCHASE_USD;
+  const GAS_BUFFER_SOL = 0.1;
 
   const tokensReceived = useMemo(() => {
     const solNum = parseFloat(sol) || 0;
@@ -127,6 +129,12 @@ const Buy = () => {
     if (!solPriceUsd || solNum <= 0) return false;
     return solNum * solPriceUsd >= minimumPurchaseUsd;
   }, [sol, solPriceUsd, minimumPurchaseUsd]);
+
+  const hasEnoughForGas = useMemo(() => {
+    const solNum = parseFloat(sol) || 0;
+    if (typeof walletSolBalance !== "number" || solNum <= 0) return true;
+    return walletSolBalance >= solNum + GAS_BUFFER_SOL;
+  }, [sol, walletSolBalance]);
 
   const usdRaised = Math.max(SEEDED_RAISED_USD, presale?.usdRaisedFromTokens ?? 0);
   const pct = Math.min(
@@ -216,6 +224,15 @@ const Buy = () => {
       toast.error(`Minimum purchase is $${minimumPurchaseUsd.toFixed(2)}.`);
       return;
     }
+    if (
+      typeof walletSolBalance === "number" &&
+      walletSolBalance < solNum + GAS_BUFFER_SOL
+    ) {
+      toast.error(
+        `Keep at least ${GAS_BUFFER_SOL} SOL extra for gas. Need ${(solNum + GAS_BUFFER_SOL).toFixed(2)} SOL, have ${walletSolBalance.toFixed(4)} SOL.`
+      );
+      return;
+    }
 
     const toastId = toast.loading("Building transaction…");
 
@@ -276,7 +293,8 @@ const Buy = () => {
     presaleEnded ||
     paused ||
     (!!presale && !connected) ||
-    (connected && !meetsMinimumUsd);
+    (connected && !meetsMinimumUsd) ||
+    (connected && !hasEnoughForGas);
 
   return (
     <main className="min-h-screen lg:h-screen lg:overflow-hidden bg-background text-foreground overflow-x-hidden relative">
@@ -464,7 +482,14 @@ const Buy = () => {
                     )}
                   </div>
 
-                  <div className="mt-5 space-y-3 flex-1">
+                  <div className="mt-4 flex items-start gap-2 rounded-lg border border-primary/30 bg-primary/10 px-3 py-2 text-[11px] text-foreground/80">
+                    <Info className="w-3.5 h-3.5 mt-0.5 text-primary-glow shrink-0" />
+                    <span>
+                      Purchases are accepted only in <strong>SOL</strong> on Solana mainnet. Other tokens or chains are not supported.
+                    </span>
+                  </div>
+
+                  <div className="mt-4 space-y-3 flex-1">
                     <div>
                       <label className="text-xs uppercase tracking-widest text-muted-foreground">
                         You Pay
@@ -539,6 +564,8 @@ const Buy = () => {
                         "Presale Paused"
                       ) : !meetsMinimumUsd ? (
                         `Min $${minimumPurchaseUsd.toFixed(0)} Purchase`
+                      ) : !hasEnoughForGas ? (
+                        `Keep ${GAS_BUFFER_SOL} SOL for Gas`
                       ) : (
                         <>Buy $LUVIA</>
                       )}
