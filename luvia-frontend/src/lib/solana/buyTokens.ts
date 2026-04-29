@@ -73,9 +73,9 @@ export async function buildBuyTokensTransactions(params: {
       closeUpdateAccounts: false,
     });
 
-    // Atomic partially-verified update fits entirely in ONE transaction along
-    // with our buy_tokens ix (instead of 2–3 txs with full VAA posting flow).
-    await builder.addPostPartiallyVerifiedPriceUpdates(priceUpdates);
+    // Use fully verified posting on mainnet for better compatibility and
+    // fewer `InstructionError: InvalidArgument` failures in wallet browsers.
+    await builder.addPostPriceUpdates(priceUpdates);
 
     const tokenVault = getAssociatedTokenAddressSync(
       tokenMint,
