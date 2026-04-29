@@ -17,6 +17,48 @@ interface BuyTokensResult {
   signature: string;
 }
 
+const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
+async function waitForConfirmation(signature: string): Promise<void> {
+  const timeoutMs = 180_000; // Mobile wallets/RPCs can take longer on mainnet.
+  const pollMs = 1_500;
+  const started = Date.now();
+
+  while (Date.now() - started < timeoutMs) {
+    const statusResp = await connection.getSignatureStatuses([signature], {
+      searchTransactionHistory: true,
+    });
+    const status = statusResp.value[0];
+
+    if (status?.err) {
+      throw new Error(`Transaction failed on-chain: ${JSON.stringify(status.err)}`);
+    }
+
+    if (
+      status &&
+      (status.confirmationStatus === "confirmed" ||
+        status.confirmationStatus === "finalized")
+    ) {
+      return;
+    }
+
+    await sleep(pollMs);
+  }
+
+  // Final probe: sometimes status indexing lags while transaction data is present.
+  const tx = await connection.getTransaction(signature, {
+    commitment: "confirmed",
+    maxSupportedTransactionVersion: 0,
+  });
+  if (tx) return;
+
+  throw new Error(
+    `Transaction was not confirmed in ${Math.round(
+      timeoutMs / 1000
+    )}s. It may still land later; verify signature in Solana Explorer.`
+  );
+}
+
 /**
  * Mutation hook: builds the Pyth-posting + `buy_tokens` transaction bundle,
  * partial-signs with the receiver's ephemeral keypairs, and hands it to the
@@ -131,32 +173,9 @@ export function useBuyTokens() {
           }
 
           try {
-            // Confirm by signature so we don't pair with an unrelated latest blockhash.
-            const res = await connection.confirmTransaction(signature, "confirmed");
-            if (res.value.err) {
-              throw new Error(
-                `Transaction failed on-chain: ${JSON.stringify(res.value.err)}`
-              );
-            }
+            await waitForConfirmation(signature);
             lastSignature = signature;
           } catch (err) {
-            try {
-              const status = await connection.getSignatureStatus(signature, {
-                searchTransactionHistory: true,
-              });
-              const s = status.value;
-              if (
-                s &&
-                !s.err &&
-                (s.confirmationStatus === "confirmed" ||
-                  s.confirmationStatus === "finalized")
-              ) {
-                lastSignature = signature;
-                continue;
-              }
-            } catch {
-              // fall through to rethrow below
-            }
             const message =
               err instanceof Error ? err.message : "Unknown confirmation error";
             throw new Error(`Failed while confirming buy transaction: ${message}`);
