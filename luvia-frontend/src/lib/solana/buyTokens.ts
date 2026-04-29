@@ -68,9 +68,9 @@ export async function buildBuyTokensTransactions(params: {
     });
 
     const builder = receiver.newTransactionBuilder({
-      // Keep the update account open to reduce instruction pressure and
-      // keep post-update + buy in a single user signature path.
-      closeUpdateAccounts: false,
+      // Reclaim rent from temporary Pyth update accounts in the same flow.
+      // This reduces balance pressure and improves mobile wallet reliability.
+      closeUpdateAccounts: true,
     });
 
     // Use fully verified posting on mainnet for better compatibility and
