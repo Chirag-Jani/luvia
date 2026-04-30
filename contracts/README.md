@@ -45,7 +45,7 @@ The mint is created externally in the deploy script with the deployer/initialize
 ### Program
 
 - Crate: `programs/luvia_presale`
-- Default program ID: `7V9qb6YHQvumWaMbze8zWGQGHZpiQQnhopLGq96TrtL9`
+- Default program ID: `3UFQfTbemvnU5ADGfQ4hQHckAm3x9iHrzMpkC6M3z5Ho`
 - Framework: Anchor 0.31.1
 
 ### PDAs
@@ -306,7 +306,7 @@ yarn deploy
 RENOUNCE_MINT_AUTHORITY=true yarn deploy
 ```
 
-The first `anchor deploy` keeps the program id pinned in `Anchor.toml` (`7V9qb6YHQvumWaMbze8zWGQGHZpiQQnhopLGq96TrtL9`). To use a fresh id (e.g. for mainnet), generate a new keypair:
+The first `anchor deploy` keeps the program id pinned in `Anchor.toml` (`3UFQfTbemvnU5ADGfQ4hQHckAm3x9iHrzMpkC6M3z5Ho`). To use a fresh id (e.g. for mainnet), generate a new keypair:
 
 ```bash
 solana-keygen new -o target/deploy/luvia_presale-keypair.json
