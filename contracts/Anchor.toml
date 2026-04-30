@@ -5,17 +5,22 @@ package_manager = "yarn"
 resolution = true
 skip-lint = false
 
+[programs.mainnet]
+luvia_presale = "7V9qb6YHQvumWaMbze8zWGQGHZpiQQnhopLGq96TrtL9"
+
 [programs.devnet]
-luvia_presale = "9285q1u8PqpHbTfqVW1bmmZPahzZWLN275G2m32ifBBp"
+luvia_presale = "7V9qb6YHQvumWaMbze8zWGQGHZpiQQnhopLGq96TrtL9"
 
 [programs.localnet]
-luvia_presale = "9285q1u8PqpHbTfqVW1bmmZPahzZWLN275G2m32ifBBp"
+luvia_presale = "7V9qb6YHQvumWaMbze8zWGQGHZpiQQnhopLGq96TrtL9"
 
 [registry]
 url = "https://api.apr.dev"
 
 [provider]
-cluster = "devnet"
+# cluster = "devnet"
+# wallet = "~/.config/solana/id.json"
+cluster = "https://mainnet.helius-rpc.com/?api-key=7bd3a79b-801f-42e5-96e6-423677c671db"
 wallet = "~/.config/solana/id.json"
 
 [scripts]

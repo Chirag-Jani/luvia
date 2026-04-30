@@ -1,0 +1,54 @@
+Program Id: 7V9qb6YHQvumWaMbze8zWGQGHZpiQQnhopLGq96TrtL9
+
+Signature: 46n5GZqZhiXg7x3PAkb5oJBmCTNf4MGLPnRQgWr4Sc2JhCeFZGgx1CPLzcchAjeAM4h4LacDmXVYqHeE3UoCMLEN
+
+Deploy success
+chiragjani@Chirags-Laptop-3 contracts % sb
+1.230811315 SOL
+chiragjani@Chirags-Laptop-3 contracts % solana address
+9Yhqmv2CvHwEzRLmQoSaz6z2C5xGngu5DqRgoNYpMPyj
+chiragjani@Chirags-Laptop-3 contracts % yarn deploy
+yarn run v1.22.22
+$ ts-node migrations/deploy.ts
+== LUVIA presale deploy ==
+cluster : https://mainnet.helius-rpc.com/?api-key=7bd3a79b-801f-42e5-96e6-423677c671db
+deployer: 9Yhqmv2CvHwEzRLmQoSaz6z2C5xGngu5DqRgoNYpMPyj
+admin   : 4wwzmVesYjv9w6uV2pDF3dH367EEAj1GVmRMmyNQGWYH
+presale start: 1777557600
+presale end  : 1781014200
+min purchase : 10000000 micro-USD
+program : 7V9qb6YHQvumWaMbze8zWGQGHZpiQQnhopLGq96TrtL9
+token decimals: 9
+total supply  : 10000000000000000000 base units
+presale alloc : 1500000000000000000 base units
+mint keypair path: /Users/chiragjani/Documents/me/luvia/contracts/migrations/luvia-mint.json
+existing mint : 6Efe2c9YTfevZPVhtmG2ZLUefLishNWNUnh6Kmqx15Hg
+metadata uri: https://silver-double-manatee-474.mypinata.cloud/ipfs/bafkreidlu3pftdk7yvtl4hpvmzs6odhfexya4um435hrjioljl37lnov7a
+deployer SOL: 1.230811315
+using existing mint: 6Efe2c9YTfevZPVhtmG2ZLUefLishNWNUnh6Kmqx15Hg
+  mint already exists, skipping creation
+  mint skipped (already funded or SKIP_MINT_SUPPLY=true)
+  skipping metadata wiring (SKIP_METADATA_WIRING=true)
+presaleConfig: 8grbHcznhvyyJBj1bLrGR5oc2YRa7dRhrhh6qAX7N2i
+treasury     : 4PR7oMUvBPFA5r5L8kJTDnyxbkwS9jR38mBHe46KcHKg
+vault        : 4FfocVCZHaiDBBt2Z4tzE2gxeCrfJGt1hmVtNkVgMkTP
+calling initialize ...
+  initialize tx: 2BbtSMcyuVVUmDR8LEBs2XdWXp8qxXcyjpx4o2W6cJn22WD1ZboaWLa3WPctKzVZa2uXMLDyJqsrMB3bXjdVhfpG
+transferring 1500000000000000000 base units to vault ...
+  vault funded
+
+== deploy complete ==
+config.admin         : 4wwzmVesYjv9w6uV2pDF3dH367EEAj1GVmRMmyNQGWYH
+config.treasury      : 4PR7oMUvBPFA5r5L8kJTDnyxbkwS9jR38mBHe46KcHKg
+config.token_mint    : 6Efe2c9YTfevZPVhtmG2ZLUefLishNWNUnh6Kmqx15Hg
+config.token_vault   : 4FfocVCZHaiDBBt2Z4tzE2gxeCrfJGt1hmVtNkVgMkTP
+config.pyth_feed     : 7UVimffxr9ow1uXYxsr4LHAcV58mLzhmwaeKvJ1pjLiE
+config.current_stage : 0
+config.paused        : false
+vault balance        : 1500000000000000000
+  stage 1: $0.010  alloc=375000000000000000  sold=0
+  stage 2: $0.015  alloc=375000000000000000  sold=0
+  stage 3: $0.020  alloc=375000000000000000  sold=0
+  stage 4: $0.025  alloc=375000000000000000  sold=0
+✨  Done in 6.58s.
+chiragjani@Chirags-Laptop-3 contracts % 

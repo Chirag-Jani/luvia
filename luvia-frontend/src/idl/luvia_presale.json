@@ -1,5 +1,5 @@
 {
-  "address": "9285q1u8PqpHbTfqVW1bmmZPahzZWLN275G2m32ifBBp",
+  "address": "7V9qb6YHQvumWaMbze8zWGQGHZpiQQnhopLGq96TrtL9",
   "metadata": {
     "name": "luvia_presale",
     "version": "0.1.0",
@@ -13,23 +13,12 @@
         "Admin-only manual stage bump. Useful if admin wants to close a stage early even though",
         "the allocation is not fully sold (any unsold tokens remain in the vault)."
       ],
-      "discriminator": [
-        245,
-        116,
-        218,
-        214,
-        50,
-        98,
-        155,
-        205
-      ],
+      "discriminator": [245, 116, 218, 214, 50, 98, 155, 205],
       "accounts": [
         {
           "name": "admin",
           "signer": true,
-          "relations": [
-            "presale_config"
-          ]
+          "relations": ["presale_config"]
         },
         {
           "name": "presale_config",
@@ -39,19 +28,7 @@
               {
                 "kind": "const",
                 "value": [
-                  112,
-                  114,
-                  101,
-                  115,
-                  97,
-                  108,
-                  101,
-                  95,
-                  99,
-                  111,
-                  110,
-                  102,
-                  105,
+                  112, 114, 101, 115, 97, 108, 101, 95, 99, 111, 110, 102, 105,
                   103
                 ]
               }
@@ -70,16 +47,7 @@
         "Any SOL left over after the final stage is fully sold is simply not transferred",
         "(remains in the buyer's wallet)."
       ],
-      "discriminator": [
-        189,
-        21,
-        230,
-        133,
-        247,
-        2,
-        110,
-        42
-      ],
+      "discriminator": [189, 21, 230, 133, 247, 2, 110, 42],
       "accounts": [
         {
           "name": "buyer",
@@ -94,19 +62,7 @@
               {
                 "kind": "const",
                 "value": [
-                  112,
-                  114,
-                  101,
-                  115,
-                  97,
-                  108,
-                  101,
-                  95,
-                  99,
-                  111,
-                  110,
-                  102,
-                  105,
+                  112, 114, 101, 115, 97, 108, 101, 95, 99, 111, 110, 102, 105,
                   103
                 ]
               }
@@ -120,25 +76,14 @@
             "seeds": [
               {
                 "kind": "const",
-                "value": [
-                  116,
-                  114,
-                  101,
-                  97,
-                  115,
-                  117,
-                  114,
-                  121
-                ]
+                "value": [116, 114, 101, 97, 115, 117, 114, 121]
               }
             ]
           }
         },
         {
           "name": "token_mint",
-          "relations": [
-            "presale_config"
-          ]
+          "relations": ["presale_config"]
         },
         {
           "name": "token_vault",
@@ -161,44 +106,13 @@
             "program": {
               "kind": "const",
               "value": [
-                140,
-                151,
-                37,
-                143,
-                78,
-                36,
-                137,
-                241,
-                187,
-                61,
-                16,
-                41,
-                20,
-                142,
-                13,
-                131,
-                11,
-                90,
-                19,
-                153,
-                218,
-                255,
-                16,
-                132,
-                4,
-                142,
-                123,
-                216,
-                219,
-                233,
-                248,
-                89
+                140, 151, 37, 143, 78, 36, 137, 241, 187, 61, 16, 41, 20, 142,
+                13, 131, 11, 90, 19, 153, 218, 255, 16, 132, 4, 142, 123, 216,
+                219, 233, 248, 89
               ]
             }
           },
-          "relations": [
-            "presale_config"
-          ]
+          "relations": ["presale_config"]
         },
         {
           "name": "buyer_token_account",
@@ -221,47 +135,16 @@
             "program": {
               "kind": "const",
               "value": [
-                140,
-                151,
-                37,
-                143,
-                78,
-                36,
-                137,
-                241,
-                187,
-                61,
-                16,
-                41,
-                20,
-                142,
-                13,
-                131,
-                11,
-                90,
-                19,
-                153,
-                218,
-                255,
-                16,
-                132,
-                4,
-                142,
-                123,
-                216,
-                219,
-                233,
-                248,
-                89
+                140, 151, 37, 143, 78, 36, 137, 241, 187, 61, 16, 41, 20, 142,
+                13, 131, 11, 90, 19, 153, 218, 255, 16, 132, 4, 142, 123, 216,
+                219, 233, 248, 89
               ]
             }
           }
         },
         {
           "name": "pyth_price_update",
-          "docs": [
-            "in `load_sol_usd_price_micro` before we use the price."
-          ]
+          "docs": ["in `load_sol_usd_price_micro` before we use the price."]
         },
         {
           "name": "token_program"
@@ -288,16 +171,7 @@
         "One-time setup. Creates config + treasury PDA + vault ATA, burns hardcoded stage config.",
         "The transaction signer is the initializer/payer; `initial_admin` can be any pubkey."
       ],
-      "discriminator": [
-        175,
-        175,
-        109,
-        31,
-        13,
-        152,
-        155,
-        237
-      ],
+      "discriminator": [175, 175, 109, 31, 13, 152, 155, 237],
       "accounts": [
         {
           "name": "initializer",
@@ -312,19 +186,7 @@
               {
                 "kind": "const",
                 "value": [
-                  112,
-                  114,
-                  101,
-                  115,
-                  97,
-                  108,
-                  101,
-                  95,
-                  99,
-                  111,
-                  110,
-                  102,
-                  105,
+                  112, 114, 101, 115, 97, 108, 101, 95, 99, 111, 110, 102, 105,
                   103
                 ]
               }
@@ -341,16 +203,7 @@
             "seeds": [
               {
                 "kind": "const",
-                "value": [
-                  116,
-                  114,
-                  101,
-                  97,
-                  115,
-                  117,
-                  114,
-                  121
-                ]
+                "value": [116, 114, 101, 97, 115, 117, 114, 121]
               }
             ]
           }
@@ -379,38 +232,9 @@
             "program": {
               "kind": "const",
               "value": [
-                140,
-                151,
-                37,
-                143,
-                78,
-                36,
-                137,
-                241,
-                187,
-                61,
-                16,
-                41,
-                20,
-                142,
-                13,
-                131,
-                11,
-                90,
-                19,
-                153,
-                218,
-                255,
-                16,
-                132,
-                4,
-                142,
-                123,
-                216,
-                219,
-                233,
-                248,
-                89
+                140, 151, 37, 143, 78, 36, 137, 241, 187, 61, 16, 41, 20, 142,
+                13, 131, 11, 90, 19, 153, 218, 255, 16, 132, 4, 142, 123, 216,
+                219, 233, 248, 89
               ]
             }
           }
@@ -451,26 +275,13 @@
     },
     {
       "name": "pause",
-      "docs": [
-        "Emergency stop — blocks all buys."
-      ],
-      "discriminator": [
-        211,
-        22,
-        221,
-        251,
-        74,
-        121,
-        193,
-        47
-      ],
+      "docs": ["Emergency stop — blocks all buys."],
+      "discriminator": [211, 22, 221, 251, 74, 121, 193, 47],
       "accounts": [
         {
           "name": "admin",
           "signer": true,
-          "relations": [
-            "presale_config"
-          ]
+          "relations": ["presale_config"]
         },
         {
           "name": "presale_config",
@@ -480,19 +291,7 @@
               {
                 "kind": "const",
                 "value": [
-                  112,
-                  114,
-                  101,
-                  115,
-                  97,
-                  108,
-                  101,
-                  95,
-                  99,
-                  111,
-                  110,
-                  102,
-                  105,
+                  112, 114, 101, 115, 97, 108, 101, 95, 99, 111, 110, 102, 105,
                   103
                 ]
               }
@@ -507,23 +306,12 @@
       "docs": [
         "Admin-only minimum purchase update (micro-USD, e.g. $10 = 10_000_000)."
       ],
-      "discriminator": [
-        78,
-        187,
-        249,
-        250,
-        223,
-        244,
-        237,
-        79
-      ],
+      "discriminator": [78, 187, 249, 250, 223, 244, 237, 79],
       "accounts": [
         {
           "name": "admin",
           "signer": true,
-          "relations": [
-            "presale_config"
-          ]
+          "relations": ["presale_config"]
         },
         {
           "name": "presale_config",
@@ -533,19 +321,7 @@
               {
                 "kind": "const",
                 "value": [
-                  112,
-                  114,
-                  101,
-                  115,
-                  97,
-                  108,
-                  101,
-                  95,
-                  99,
-                  111,
-                  110,
-                  102,
-                  105,
+                  112, 114, 101, 115, 97, 108, 101, 95, 99, 111, 110, 102, 105,
                   103
                 ]
               }
@@ -562,26 +338,13 @@
     },
     {
       "name": "set_presale_end",
-      "docs": [
-        "Admin-only update of presale end timestamp (unix seconds)."
-      ],
-      "discriminator": [
-        110,
-        179,
-        151,
-        200,
-        189,
-        204,
-        88,
-        19
-      ],
+      "docs": ["Admin-only update of presale end timestamp (unix seconds)."],
+      "discriminator": [110, 179, 151, 200, 189, 204, 88, 19],
       "accounts": [
         {
           "name": "admin",
           "signer": true,
-          "relations": [
-            "presale_config"
-          ]
+          "relations": ["presale_config"]
         },
         {
           "name": "presale_config",
@@ -591,19 +354,7 @@
               {
                 "kind": "const",
                 "value": [
-                  112,
-                  114,
-                  101,
-                  115,
-                  97,
-                  108,
-                  101,
-                  95,
-                  99,
-                  111,
-                  110,
-                  102,
-                  105,
+                  112, 114, 101, 115, 97, 108, 101, 95, 99, 111, 110, 102, 105,
                   103
                 ]
               }
@@ -620,23 +371,12 @@
     },
     {
       "name": "unpause",
-      "discriminator": [
-        169,
-        144,
-        4,
-        38,
-        10,
-        141,
-        188,
-        255
-      ],
+      "discriminator": [169, 144, 4, 38, 10, 141, 188, 255],
       "accounts": [
         {
           "name": "admin",
           "signer": true,
-          "relations": [
-            "presale_config"
-          ]
+          "relations": ["presale_config"]
         },
         {
           "name": "presale_config",
@@ -646,19 +386,7 @@
               {
                 "kind": "const",
                 "value": [
-                  112,
-                  114,
-                  101,
-                  115,
-                  97,
-                  108,
-                  101,
-                  95,
-                  99,
-                  111,
-                  110,
-                  102,
-                  105,
+                  112, 114, 101, 115, 97, 108, 101, 95, 99, 111, 110, 102, 105,
                   103
                 ]
               }
@@ -680,24 +408,13 @@
         "fail with `InsufficientVaultBalance` until admin re-funds the vault. The typical safe",
         "pattern mid-presale is: `pause → withdraw_unsold_tokens → unpause` (or re-fund)."
       ],
-      "discriminator": [
-        132,
-        251,
-        59,
-        118,
-        38,
-        162,
-        168,
-        77
-      ],
+      "discriminator": [132, 251, 59, 118, 38, 162, 168, 77],
       "accounts": [
         {
           "name": "admin",
           "writable": true,
           "signer": true,
-          "relations": [
-            "presale_config"
-          ]
+          "relations": ["presale_config"]
         },
         {
           "name": "presale_config",
@@ -706,19 +423,7 @@
               {
                 "kind": "const",
                 "value": [
-                  112,
-                  114,
-                  101,
-                  115,
-                  97,
-                  108,
-                  101,
-                  95,
-                  99,
-                  111,
-                  110,
-                  102,
-                  105,
+                  112, 114, 101, 115, 97, 108, 101, 95, 99, 111, 110, 102, 105,
                   103
                 ]
               }
@@ -727,9 +432,7 @@
         },
         {
           "name": "token_mint",
-          "relations": [
-            "presale_config"
-          ]
+          "relations": ["presale_config"]
         },
         {
           "name": "token_vault",
@@ -752,44 +455,13 @@
             "program": {
               "kind": "const",
               "value": [
-                140,
-                151,
-                37,
-                143,
-                78,
-                36,
-                137,
-                241,
-                187,
-                61,
-                16,
-                41,
-                20,
-                142,
-                13,
-                131,
-                11,
-                90,
-                19,
-                153,
-                218,
-                255,
-                16,
-                132,
-                4,
-                142,
-                123,
-                216,
-                219,
-                233,
-                248,
-                89
+                140, 151, 37, 143, 78, 36, 137, 241, 187, 61, 16, 41, 20, 142,
+                13, 131, 11, 90, 19, 153, 218, 255, 16, 132, 4, 142, 123, 216,
+                219, 233, 248, 89
               ]
             }
           },
-          "relations": [
-            "presale_config"
-          ]
+          "relations": ["presale_config"]
         },
         {
           "name": "admin_token_account",
@@ -815,38 +487,9 @@
             "program": {
               "kind": "const",
               "value": [
-                140,
-                151,
-                37,
-                143,
-                78,
-                36,
-                137,
-                241,
-                187,
-                61,
-                16,
-                41,
-                20,
-                142,
-                13,
-                131,
-                11,
-                90,
-                19,
-                153,
-                218,
-                255,
-                16,
-                132,
-                4,
-                142,
-                123,
-                216,
-                219,
-                233,
-                248,
-                89
+                140, 151, 37, 143, 78, 36, 137, 241, 187, 61, 16, 41, 20, 142,
+                13, 131, 11, 90, 19, 153, 218, 255, 16, 132, 4, 142, 123, 216,
+                219, 233, 248, 89
               ]
             }
           }
@@ -874,109 +517,37 @@
   "accounts": [
     {
       "name": "PresaleConfig",
-      "discriminator": [
-        115,
-        71,
-        85,
-        233,
-        246,
-        108,
-        30,
-        3
-      ]
+      "discriminator": [115, 71, 85, 233, 246, 108, 30, 3]
     }
   ],
   "events": [
     {
       "name": "MinPurchaseUpdated",
-      "discriminator": [
-        110,
-        84,
-        171,
-        22,
-        79,
-        66,
-        205,
-        198
-      ]
+      "discriminator": [110, 84, 171, 22, 79, 66, 205, 198]
     },
     {
       "name": "PausedChanged",
-      "discriminator": [
-        12,
-        10,
-        153,
-        247,
-        60,
-        115,
-        137,
-        69
-      ]
+      "discriminator": [12, 10, 153, 247, 60, 115, 137, 69]
     },
     {
       "name": "PresaleEndUpdated",
-      "discriminator": [
-        108,
-        12,
-        156,
-        115,
-        137,
-        1,
-        171,
-        107
-      ]
+      "discriminator": [108, 12, 156, 115, 137, 1, 171, 107]
     },
     {
       "name": "PresaleInitialized",
-      "discriminator": [
-        103,
-        99,
-        225,
-        170,
-        238,
-        250,
-        90,
-        75
-      ]
+      "discriminator": [103, 99, 225, 170, 238, 250, 90, 75]
     },
     {
       "name": "StageAdvanced",
-      "discriminator": [
-        238,
-        247,
-        141,
-        164,
-        52,
-        239,
-        99,
-        134
-      ]
+      "discriminator": [238, 247, 141, 164, 52, 239, 99, 134]
     },
     {
       "name": "TokensPurchased",
-      "discriminator": [
-        214,
-        119,
-        105,
-        186,
-        114,
-        205,
-        228,
-        181
-      ]
+      "discriminator": [214, 119, 105, 186, 114, 205, 228, 181]
     },
     {
       "name": "UnsoldTokensWithdrawn",
-      "discriminator": [
-        241,
-        12,
-        117,
-        85,
-        109,
-        175,
-        143,
-        151
-      ]
+      "discriminator": [241, 12, 117, 85, 109, 175, 143, 151]
     }
   ],
   "errors": [
@@ -1109,30 +680,22 @@
           },
           {
             "name": "treasury",
-            "docs": [
-              "PDA used in buy-time SOL routing path."
-            ],
+            "docs": ["PDA used in buy-time SOL routing path."],
             "type": "pubkey"
           },
           {
             "name": "token_mint",
-            "docs": [
-              "LUVIA Token-2022 mint address."
-            ],
+            "docs": ["LUVIA Token-2022 mint address."],
             "type": "pubkey"
           },
           {
             "name": "token_vault",
-            "docs": [
-              "ATA owned by this config PDA that holds presale tokens."
-            ],
+            "docs": ["ATA owned by this config PDA that holds presale tokens."],
             "type": "pubkey"
           },
           {
             "name": "pyth_price_update",
-            "docs": [
-              "Pyth pull-oracle price update account for SOL/USD."
-            ],
+            "docs": ["Pyth pull-oracle price update account for SOL/USD."],
             "type": "pubkey"
           },
           {
@@ -1151,28 +714,19 @@
           },
           {
             "name": "bump",
-            "docs": [
-              "Bump for the config PDA."
-            ],
+            "docs": ["Bump for the config PDA."],
             "type": "u8"
           },
           {
             "name": "treasury_bump",
-            "docs": [
-              "Bump for the treasury PDA."
-            ],
+            "docs": ["Bump for the treasury PDA."],
             "type": "u8"
           },
           {
             "name": "_padding",
-            "docs": [
-              "Reserved for future use / alignment."
-            ],
+            "docs": ["Reserved for future use / alignment."],
             "type": {
-              "array": [
-                "u8",
-                4
-              ]
+              "array": ["u8", 4]
             }
           },
           {
@@ -1191,30 +745,22 @@
           },
           {
             "name": "presale_end_ts",
-            "docs": [
-              "Presale end timestamp (unix seconds, source of truth)."
-            ],
+            "docs": ["Presale end timestamp (unix seconds, source of truth)."],
             "type": "i64"
           },
           {
             "name": "total_tokens_sold",
-            "docs": [
-              "Total tokens sold across all stages (base units)."
-            ],
+            "docs": ["Total tokens sold across all stages (base units)."],
             "type": "u64"
           },
           {
             "name": "total_sol_raised",
-            "docs": [
-              "Total SOL taken into the treasury (lamports)."
-            ],
+            "docs": ["Total SOL taken into the treasury (lamports)."],
             "type": "u64"
           },
           {
             "name": "stages",
-            "docs": [
-              "Per-stage configuration + progress."
-            ],
+            "docs": ["Per-stage configuration + progress."],
             "type": {
               "array": [
                 {
@@ -1304,23 +850,17 @@
         "fields": [
           {
             "name": "price_micro_usd",
-            "docs": [
-              "Token price in micro-USD (6 decimals): $0.01 => 10_000."
-            ],
+            "docs": ["Token price in micro-USD (6 decimals): $0.01 => 10_000."],
             "type": "u64"
           },
           {
             "name": "allocation",
-            "docs": [
-              "Hard cap for this stage in base units (9 decimals)."
-            ],
+            "docs": ["Hard cap for this stage in base units (9 decimals)."],
             "type": "u64"
           },
           {
             "name": "sold",
-            "docs": [
-              "Already-sold tokens in this stage (base units)."
-            ],
+            "docs": ["Already-sold tokens in this stage (base units)."],
             "type": "u64"
           }
         ]

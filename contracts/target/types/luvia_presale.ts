@@ -5,7 +5,7 @@
  * IDL can be found at `target/idl/luvia_presale.json`.
  */
 export type LuviaPresale = {
-  "address": "9285q1u8PqpHbTfqVW1bmmZPahzZWLN275G2m32ifBBp",
+  "address": "7V9qb6YHQvumWaMbze8zWGQGHZpiQQnhopLGq96TrtL9",
   "metadata": {
     "name": "luviaPresale",
     "version": "0.1.0",

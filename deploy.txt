@@ -17,7 +17,7 @@ Deploying cluster: https://api.mainnet-beta.solana.com
 Upgrade authority: /Users/chiragjani/.config/solana/id.json
 Deploying program "luvia_presale"...
 Program path: /Users/chiragjani/Documents/me/luvia/contracts/target/deploy/luvia_presale.so...
-Program Id: 9285q1u8PqpHbTfqVW1bmmZPahzZWLN275G2m32ifBBp
+Program Id: 7V9qb6YHQvumWaMbze8zWGQGHZpiQQnhopLGq96TrtL9
 
 Signature: 3xtvMYNCCy7gkwZ6yJksF7TUs2j3cdXreufjLA2HStHXnBpRzYkTbtoEg6nhr82uCmGRKo7kXsiZpuL4YPNfV7dZ
 
@@ -34,7 +34,7 @@ admin   : HnmDd6g9fKUTzYnUZHJ2hkNhZR384HCLeHccxx5Gm63X
 presale start: 1777405380
 presale end  : 1780947780
 min purchase : 10000000 micro-USD
-program : 9285q1u8PqpHbTfqVW1bmmZPahzZWLN275G2m32ifBBp
+program : 7V9qb6YHQvumWaMbze8zWGQGHZpiQQnhopLGq96TrtL9
 token decimals: 9
 total supply  : 10000000000000000000 base units
 presale alloc : 1500000000000000000 base units
@@ -91,7 +91,7 @@ admin   : HnmDd6g9fKUTzYnUZHJ2hkNhZR384HCLeHccxx5Gm63X
 presale start: 1777405380
 presale end  : 1780947780
 min purchase : 10000000 micro-USD
-program : 9285q1u8PqpHbTfqVW1bmmZPahzZWLN275G2m32ifBBp
+program : 7V9qb6YHQvumWaMbze8zWGQGHZpiQQnhopLGq96TrtL9
 token decimals: 9
 total supply  : 10000000000000000000 base units
 presale alloc : 1500000000000000000 base units
