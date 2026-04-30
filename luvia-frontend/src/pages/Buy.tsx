@@ -136,7 +136,7 @@ const Buy = () => {
     return walletSolBalance >= solNum + GAS_BUFFER_SOL;
   }, [sol, walletSolBalance]);
 
-  const usdRaised = Math.max(SEEDED_RAISED_USD, presale?.usdRaisedFromTokens ?? 0);
+  const usdRaised = SEEDED_RAISED_USD + (presale?.usdRaisedFromTokens ?? 0);
   const pct = Math.min(
     100,
     (usdRaised / TOTAL_PRESALE_USD_GOAL) * 100

@@ -20,7 +20,7 @@ interface Props {
 export const Hero = ({ endDate }: Props) => {
   const { data: presale } = usePresaleState();
   const raised = Math.floor(
-    Math.max(SEEDED_RAISED_USD, presale?.usdRaisedFromTokens ?? 0)
+    SEEDED_RAISED_USD + (presale?.usdRaisedFromTokens ?? 0)
   );
   const goal = FUNDRAISING_GOAL_USD;
   const pct = (raised / goal) * 100;
