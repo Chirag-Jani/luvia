@@ -51,6 +51,7 @@ import {
   MIN_PURCHASE_USD,
   PER_STAGE_ALLOCATION_UI,
   SEEDED_RAISED_USD,
+  SEEDED_SOLD_TOKENS_UI,
   STAGE_PRICES_USD,
 } from "@/lib/solana/config";
 
@@ -142,8 +143,11 @@ const Buy = () => {
     (usdRaised / TOTAL_PRESALE_USD_GOAL) * 100
   );
 
+  const seededSoldBaseUnits = SEEDED_SOLD_TOKENS_UI * BASE_UNIT_DIVISOR;
   const stageProgress = activeStage
-    ? (Number(activeStage.sold) / Number(activeStage.allocation)) * 100
+    ? ((Number(activeStage.sold) + seededSoldBaseUnits) /
+        Number(activeStage.allocation)) *
+      100
     : 0;
   const isAdmin = Boolean(
     connected && publicKey && presale && publicKey.equals(presale.admin)

@@ -10,6 +10,7 @@ import {
   FUNDRAISING_GOAL_USD,
   PER_STAGE_ALLOCATION_UI,
   SEEDED_RAISED_USD,
+  SEEDED_SOLD_TOKENS_UI,
   STAGE_PRICES_USD,
 } from "@/lib/solana/config";
 
@@ -27,11 +28,15 @@ export const Hero = ({ endDate }: Props) => {
   const activeStageIndex = presale?.currentStage ?? 0;
   const activeStage = presale?.activeStage;
   const stagePrice = activeStage?.priceUsd ?? STAGE_PRICES_USD[0];
+  const seededSoldBaseUnits = SEEDED_SOLD_TOKENS_UI * BASE_UNIT_DIVISOR;
+  const soldBaseUnits = activeStage
+    ? Number(activeStage.sold) + seededSoldBaseUnits
+    : seededSoldBaseUnits;
   const stagePct =
     activeStage && activeStage.allocation > 0n
-      ? (Number(activeStage.sold) / Number(activeStage.allocation)) * 100
+      ? (soldBaseUnits / Number(activeStage.allocation)) * 100
       : 0;
-  const soldUi = activeStage ? Number(activeStage.sold) / BASE_UNIT_DIVISOR : 0;
+  const soldUi = soldBaseUnits / BASE_UNIT_DIVISOR;
 
   return (
     <section className="relative w-full min-h-[92vh] overflow-hidden bg-[#050816] pt-20 sm:pt-24 lg:pt-28 pb-10">

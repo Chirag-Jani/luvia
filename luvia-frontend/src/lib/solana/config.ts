@@ -49,6 +49,7 @@ export const STAGE_PRICES_USD = [0.01, 0.015, 0.02, 0.025] as const;
 export const LISTING_PRICE_USD = 0.1;
 export const FUNDRAISING_GOAL_USD = 6_000_000;
 export const SEEDED_RAISED_USD = 268_000;
+export const SEEDED_SOLD_TOKENS_UI = 2_680_000;
 export const CONTACT_EMAIL = "Info@luvia.exchange";
 
 /** Per-stage allocation (375M LUVIA) — hardcoded in the program. */
