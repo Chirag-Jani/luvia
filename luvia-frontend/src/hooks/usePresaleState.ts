@@ -10,8 +10,8 @@ export function usePresaleState() {
   return useQuery<PresaleState>({
     queryKey: ["presale-state"],
     queryFn: fetchPresaleState,
-    refetchInterval: 15_000,
+    refetchInterval: 5_000,
     refetchOnWindowFocus: true,
-    staleTime: 10_000,
+    staleTime: 2_000,
   });
 }

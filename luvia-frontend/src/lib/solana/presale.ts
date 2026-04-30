@@ -6,6 +6,7 @@ import { readonlyProgram } from "./program";
 export interface StageState {
   index: number;
   priceUsd: number;
+  priceMicroUsd: bigint;
   allocation: bigint;
   sold: bigint;
   remaining: bigint;
@@ -32,7 +33,7 @@ export interface PresaleState {
 }
 
 const MICRO_USD = 1_000_000;
-const BASE_UNIT_DIVISOR = 1_000_000_000; // 10^9
+const BASE_UNIT_DIVISOR = 1_000_000_000n; // 10^9
 
 function pick<T = unknown>(obj: Record<string, unknown>, ...keys: string[]): T {
   for (const key of keys) {
@@ -65,22 +66,24 @@ export async function fetchPresaleState(): Promise<PresaleState> {
     const s = entry as Record<string, unknown>;
     const allocation = BigInt(pick(s, "allocation").toString());
     const sold = BigInt(pick(s, "sold").toString());
-    const priceMicroUsd = Number(
+    const priceMicroUsd = BigInt(
       pick(s, "priceMicroUsd", "price_micro_usd").toString()
     );
     return {
       index: i,
-      priceUsd: priceMicroUsd / MICRO_USD,
+      priceUsd: Number(priceMicroUsd) / MICRO_USD,
+      priceMicroUsd,
       allocation,
       sold,
       remaining: allocation - sold,
     };
   });
 
-  let usdRaised = 0;
+  let usdRaisedMicro = 0n;
   for (const s of stages) {
-    const soldUi = Number(s.sold) / BASE_UNIT_DIVISOR;
-    usdRaised += soldUi * s.priceUsd;
+    // Convert sold base-units -> token units using integer math and keep the
+    // result in micro-USD to avoid floating-point drift/sticky updates.
+    usdRaisedMicro += (s.sold * s.priceMicroUsd) / BASE_UNIT_DIVISOR;
   }
 
   const currentStage = Number(pick(raw, "currentStage", "current_stage"));
@@ -118,6 +121,6 @@ export async function fetchPresaleState(): Promise<PresaleState> {
     ),
     stages,
     activeStage,
-    usdRaisedFromTokens: usdRaised,
+    usdRaisedFromTokens: Number(usdRaisedMicro) / MICRO_USD,
   };
 }
