@@ -1,9 +1,6 @@
-import { ConnectWalletButton } from "@/components/luvia/ConnectWalletButton";
-import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { Menu, X } from "lucide-react";
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
 
 const links = [
   { label: "About", href: "#about" },
@@ -57,12 +54,12 @@ export const Navbar = () => {
           ))}
         </nav>
 
-        <div className="hidden md:flex items-center gap-3">
+        {/* <div className="hidden md:flex items-center gap-3">
           <ConnectWalletButton size="lg" variant="outline" />
           <Button variant="hero" size="lg" asChild>
             <Link to="/buy">Buy $LUVIA</Link>
           </Button>
-        </div>
+        </div> */}
 
         <button
           className="md:hidden p-2 rounded-lg border border-border bg-card/60"
@@ -86,12 +83,12 @@ export const Navbar = () => {
                 {l.label}
               </a>
             ))}
-            <ConnectWalletButton variant="outline" className="w-full" />
+            {/* <ConnectWalletButton variant="outline" className="w-full" />
             <Button variant="hero" asChild>
               <Link to="/buy" onClick={() => setOpen(false)}>
                 Buy $LUVIA
               </Link>
-            </Button>
+            </Button> */}
           </div>
         </div>
       )}

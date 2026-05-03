@@ -1,18 +1,13 @@
-import { Button } from "@/components/ui/button";
-import { Link } from "react-router-dom";
-import { AnimatedNumber } from "./AnimatedNumber";
-import { Countdown } from "./Countdown";
-import { ParticleBg } from "./ParticleBg";
-import { Reveal } from "./Reveal";
 import { usePresaleState } from "@/hooks/usePresaleState";
 import {
   BASE_UNIT_DIVISOR,
   FUNDRAISING_GOAL_USD,
-  PER_STAGE_ALLOCATION_UI,
   SEEDED_RAISED_USD,
   SEEDED_SOLD_TOKENS_UI,
   STAGE_PRICES_USD,
 } from "@/lib/solana/config";
+import { ParticleBg } from "./ParticleBg";
+import { Reveal } from "./Reveal";
 
 interface Props {
   endDate: Date;
@@ -21,7 +16,7 @@ interface Props {
 export const Hero = ({ endDate }: Props) => {
   const { data: presale } = usePresaleState();
   const raised = Math.floor(
-    SEEDED_RAISED_USD + (presale?.usdRaisedFromTokens ?? 0)
+    SEEDED_RAISED_USD + (presale?.usdRaisedFromTokens ?? 0),
   );
   const goal = FUNDRAISING_GOAL_USD;
   const pct = (raised / goal) * 100;
@@ -165,7 +160,7 @@ export const Hero = ({ endDate }: Props) => {
         </Reveal>
 
         {/* Presale card */}
-        <Reveal
+        {/* <Reveal
           delay={0.35}
           className="w-full flex justify-center mt-[-52px] sm:mt-[-64px] z-20"
         >
@@ -227,7 +222,7 @@ export const Hero = ({ endDate }: Props) => {
               </Button>
             </div>
           </div>
-        </Reveal>
+        </Reveal> */}
       </div>
     </section>
   );

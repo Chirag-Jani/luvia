@@ -1,20 +1,19 @@
-import { useMemo } from "react";
-import { Link } from "react-router-dom";
-import { Navbar } from "@/components/luvia/Navbar";
-import { Hero } from "@/components/luvia/Hero";
 import { About } from "@/components/luvia/About";
+import { Competitive } from "@/components/luvia/Competitive";
+import { FAQ } from "@/components/luvia/FAQ";
 import { Features } from "@/components/luvia/Features";
+import { Footer } from "@/components/luvia/Footer";
+import { Hero } from "@/components/luvia/Hero";
 import { HowItWorks } from "@/components/luvia/HowItWorks";
+import { Navbar } from "@/components/luvia/Navbar";
 import { Participants } from "@/components/luvia/Participants";
-import { Tokenomics } from "@/components/luvia/Tokenomics";
 import { PresaleStages } from "@/components/luvia/PresaleStages";
 import { Roadmap } from "@/components/luvia/Roadmap";
 import { TechStack } from "@/components/luvia/TechStack";
-import { Competitive } from "@/components/luvia/Competitive";
+import { Tokenomics } from "@/components/luvia/Tokenomics";
 import { UseCases } from "@/components/luvia/UseCases";
-import { FAQ } from "@/components/luvia/FAQ";
-import { Footer } from "@/components/luvia/Footer";
 import { usePresaleState } from "@/hooks/usePresaleState";
+import { useMemo } from "react";
 
 const Index = () => {
   const { data: presale } = usePresaleState();
@@ -40,7 +39,7 @@ const Index = () => {
       <UseCases />
       <FAQ />
       <Footer />
-      <div className="fixed bottom-0 inset-x-0 z-50 border-t border-border/60 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80">
+      {/* <div className="fixed bottom-0 inset-x-0 z-50 border-t border-border/60 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80">
         <div className="container py-3">
           <Link
             to="/buy"
@@ -49,7 +48,7 @@ const Index = () => {
             Buy Now
           </Link>
         </div>
-      </div>
+      </div> */}
     </main>
   );
 };
