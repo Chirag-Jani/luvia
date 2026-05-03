@@ -7,10 +7,8 @@ import { Hero } from "@/components/luvia/Hero";
 import { HowItWorks } from "@/components/luvia/HowItWorks";
 import { Navbar } from "@/components/luvia/Navbar";
 import { Participants } from "@/components/luvia/Participants";
-import { PresaleStages } from "@/components/luvia/PresaleStages";
 import { Roadmap } from "@/components/luvia/Roadmap";
 import { TechStack } from "@/components/luvia/TechStack";
-import { Tokenomics } from "@/components/luvia/Tokenomics";
 import { UseCases } from "@/components/luvia/UseCases";
 import { usePresaleState } from "@/hooks/usePresaleState";
 import { useMemo } from "react";
@@ -31,8 +29,8 @@ const Index = () => {
       <Features />
       <HowItWorks />
       <Participants />
-      <Tokenomics />
-      <PresaleStages />
+      {/* <Tokenomics /> */}
+      {/* <PresaleStages /> */}
       <Roadmap />
       <TechStack />
       <Competitive />
